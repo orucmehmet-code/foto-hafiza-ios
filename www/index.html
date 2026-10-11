@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d1a">
+<title>Foto Hafıza</title>
+<style>
+  :root{
+    --bg:#0b0d1a;
+    --panel:#151a2e;
+    --panel2:#1d2440;
+    --line:#2a3358;
+    --text:#eef1fb;
+    --muted:#8b94b8;
+    --teal:#4fd1c5;
+    --teal-d:#2f9e93;
+    --yellow:#f6e05e;
+    --red:#fc8181;
+    --green:#68d391;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 600px at 50% -10%, #182046 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+    user-select:none;
+  }
+  #app{
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    max-width:640px;
+    margin:0 auto;
+    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
+  }
+  .screen{display:none;flex:1;flex-direction:column;animation:fade .25s ease;}
+  .screen.active{display:flex;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 4px 10px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.3px;}
+  .brand .logo{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--teal),#3182ce);
+    display:grid;place-items:center;font-size:19px;box-shadow:var(--shadow);
+  }
+  .chip{
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--muted);font-size:12px;font-weight:700;
+    padding:6px 12px;border-radius:999px;
+  }
+
+  .hero{
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:16px;
+  }
+  .hero h1{margin:0 0 6px;font-size:22px;line-height:1.25;}
+  .hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:12px 8px;text-align:center;
+  }
+  .stat .v{font-size:22px;font-weight:800;color:var(--teal);}
+  .stat .k{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600;letter-spacing:.3px;}
+
+  .mode{
+    position:relative;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px;margin-bottom:14px;
+    box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,border-color .12s;
+  }
+  .mode:active{transform:scale(.98);}
+  .mode:hover{border-color:var(--teal-d);}
+  .mode .ico{
+    width:52px;height:52px;flex:0 0 52px;border-radius:14px;
+    display:grid;place-items:center;font-size:26px;
+    background:var(--panel2);border:1px solid var(--line);
+  }
+  .mode .txt{flex:1;min-width:0;}
+  .mode .txt h3{margin:0 0 3px;font-size:16px;}
+  .mode .txt p{margin:0;color:var(--muted);font-size:13px;line-height:1.4;}
+  .mode .go{color:var(--muted);font-size:22px;}
+
+  .difficulty{display:flex;gap:8px;margin-bottom:4px;}
+  .diff{
+    flex:1;text-align:center;padding:12px 6px;border-radius:14px;
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;
+    transition:.12s;
+  }
+  .diff.sel{color:#08221f;background:var(--teal);border-color:var(--teal);}
+  .diff small{display:block;font-size:10px;font-weight:600;opacity:.85;margin-top:2px;}
+  .diffinfo{text-align:center;color:var(--muted);font-size:11.5px;font-weight:700;padding:8px 4px 2px;letter-spacing:.2px;}
+
+  /* game common */
+  .gbar{display:flex;align-items:center;gap:12px;padding:16px 0 8px;}
+  .back{
+    width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:20px;display:grid;place-items:center;cursor:pointer;
+  }
+  .back:active{transform:scale(.95);}
+  .gbar .title{font-weight:800;font-size:16px;flex:1;}
+  .gbar .round{font-size:12px;color:var(--muted);font-weight:700;}
+
+  .progress{height:8px;border-radius:99px;background:var(--panel);overflow:hidden;border:1px solid var(--line);}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),#3182ce);transition:width .25s;}
+
+  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 0;}
+
+  .prompt{text-align:center;margin-bottom:16px;}
+  .prompt h2{margin:0 0 6px;font-size:19px;line-height:1.3;}
+  .prompt p{margin:0;color:var(--muted);font-size:13.5px;}
+
+  .timerwrap{height:10px;background:var(--panel);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:0 auto 16px;max-width:380px;width:100%;}
+  .timerwrap i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--yellow),var(--red));}
+  .countdown{text-align:center;font-size:40px;font-weight:900;color:var(--yellow);margin:-4px 0 12px;font-variant-numeric:tabular-nums;}
+
+  .scene{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow);max-width:420px;margin:0 auto;width:100%;
+  }
+  .grid{display:grid;gap:10px;}
+  .cell{
+    position:relative;border-radius:14px;background:var(--panel2);
+    border:1px solid var(--line);overflow:hidden;
+  }
+  .cell::before{content:"";display:block;padding-top:100%;}
+  .cell .ic{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(28px,9vw,46px);line-height:1;
+  }
+  .cell.pos-label::after{
+    content:attr(data-pos);position:absolute;bottom:4px;left:0;right:0;
+    text-align:center;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.2px;
+    z-index:2;
+  }
+  .cell.pick{cursor:pointer;transition:.15s;}
+  .cell.pick:active{transform:scale(.95);}
+  .cell.correct{border-color:var(--green);background:rgba(104,211,145,.14);box-shadow:0 0 0 2px var(--green) inset;}
+  .cell.wrong{border-color:var(--red);background:rgba(252,129,129,.14);box-shadow:0 0 0 2px var(--red) inset;}
+  .cell .mark{
+    position:absolute;top:0;left:0;right:0;bottom:0;z-index:3;
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(40px,15vw,64px);font-weight:900;line-height:1;
+    text-shadow:0 2px 10px rgba(0,0,0,.55);
+  }
+  .cell .mark.ok{color:var(--green);}
+  .cell .mark.no{color:var(--red);}
+
+  .options{display:grid;gap:10px;max-width:420px;margin:0 auto;width:100%;}
+  .options.two{grid-template-columns:1fr 1fr;}
+  .opt{
+    position:relative;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:14px;font-size:16px;font-weight:700;color:var(--text);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;transition:.12s;min-height:56px;
+  }
+  .opt:active{transform:scale(.97);}
+  .opt.correct{background:rgba(104,211,145,.16);border-color:var(--green);color:var(--green);}
+  .opt.wrong{background:rgba(252,129,129,.16);border-color:var(--red);color:var(--red);}
+  .opt .mark{position:absolute;top:6px;right:9px;font-size:19px;font-weight:900;line-height:1;}
+  .opt .mark.ok{color:var(--green);}
+  .opt .mark.no{color:var(--red);}
+  .opt .big{font-size:30px;}
+  .opt:disabled{cursor:default;}
+
+  .digitbox{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;max-width:460px;margin:0 auto;width:100%;box-shadow:var(--shadow);
+  }
+  .digit{
+    width:clamp(34px,10vw,52px);height:clamp(44px,13vw,64px);
+    display:grid;place-items:center;border-radius:12px;
+    background:var(--panel2);border:1px solid var(--line);
+    font-size:clamp(22px,7vw,34px);font-weight:900;font-variant-numeric:tabular-nums;
+  }
+  .digit.slot{color:var(--muted);}
+  .digit.filled{color:var(--text);border-color:var(--teal-d);}
+  .digit.correct{color:var(--green);border-color:var(--green);background:rgba(104,211,145,.16);}
+  .digit.wrong{color:var(--red);border-color:var(--red);background:rgba(252,129,129,.16);}
+
+  /* matching game */
+  .board{
+    display:grid;gap:8px;margin:0 auto;width:100%;
+  }
+  .card{position:relative;cursor:pointer;perspective:700px;}
+  .card::before{content:"";display:block;padding-top:100%;}
+  .card .face{
+    position:absolute;top:0;left:0;right:0;bottom:0;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);transition:opacity .16s ease, transform .16s ease;
+    backface-visibility:hidden;
+  }
+  .card .face-front{
+    background:linear-gradient(150deg,var(--panel2),var(--panel));
+    color:var(--muted);font-size:clamp(18px,5vw,30px);font-weight:900;
+  }
+  .card .face-front::after{content:"?";}
+  .card .face-back{
+    background:var(--panel2);opacity:0;transform:scale(.55);
+    font-size:clamp(20px,6.5vw,40px);line-height:1;
+  }
+  .card.flipped .face-front{opacity:0;transform:scale(.55);}
+  .card.flipped .face-back{opacity:1;transform:scale(1);}
+  .card.matched .face-back{
+    border-color:var(--green);box-shadow:0 0 0 2px var(--green) inset;
+    background:rgba(104,211,145,.14);
+  }
+  .card.matched .face-front{opacity:0;}
+  .card.matched{cursor:default;}
+  .card.matched .face-back{opacity:1;transform:scale(1);}
+  .card:not(.flipped):not(.matched):active{transform:scale(.95);}
+  .wordchip{
+    display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+    padding:6px 16px;border-radius:999px;min-height:34px;
+    background:var(--panel2);border:1px solid var(--line);
+    color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.3px;
+    transition:color .15s, border-color .15s, transform .15s;
+  }
+  .wordchip.show{color:var(--teal);border-color:var(--teal-d);transform:scale(1.06);}
+
+  /* word list */
+  .btn.sm{flex:none;padding:11px 14px;font-size:13px;border-radius:12px;}
+  .wordtools{display:flex;gap:8px;padding:4px 0 10px;}
+  .wordtools .btn{flex:1;}
+  .wordfoot{padding:10px 0 calc(10px + env(safe-area-inset-bottom));}
+  .wordfoot .btn{width:100%;}
+  .wcat{margin-bottom:16px;}
+  .wcat h4{margin:0 0 8px;font-size:12px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-weight:800;}
+  .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
+  .wchip{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:10px 6px;border-radius:14px;background:var(--panel);border:1px solid var(--line);
+    cursor:pointer;transition:.12s;color:var(--text);
+  }
+  .wchip:active{transform:scale(.96);}
+  .wchip .we{font-size:26px;line-height:1;}
+  .wchip .wen{font-size:12px;font-weight:800;text-align:center;line-height:1.15;}
+  .wchip .wtr{font-size:10px;color:var(--muted);}
+  .wchip.sel{border-color:var(--teal);background:rgba(79,209,197,.12);}
+  .wchip.sel .wen{color:var(--teal);}
+
+  .pad{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+    max-width:300px;margin:16px auto 0;width:100%;
+  }
+  .key{
+    padding:16px;border-radius:14px;background:var(--panel);border:1px solid var(--line);
+    font-size:22px;font-weight:800;color:var(--text);cursor:pointer;transition:.1s;
+  }
+  .key:active{transform:scale(.94);background:var(--panel2);}
+  .key.warn{color:var(--yellow);}
+  .btnrow{display:flex;gap:10px;max-width:420px;margin:16px auto 0;width:100%;}
+  .btn{
+    flex:1;padding:15px;border-radius:14px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-weight:800;font-size:15px;cursor:pointer;
+    transition:.12s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:var(--teal);color:#07231f;border-color:var(--teal);}
+  .btn.primary:active{background:var(--teal-d);}
+
+  .result{
+    text-align:center;padding:20px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    max-width:420px;margin:0 auto;width:100%;box-shadow:var(--shadow);
+  }
+  .result .emoji{font-size:52px;margin-bottom:8px;}
+  .result h2{margin:0 0 6px;font-size:22px;}
+  .result p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;}
+  .result .pts{font-size:30px;font-weight:900;color:var(--teal);margin:12px 0;}
+
+  .feedback{text-align:center;font-weight:800;font-size:15px;min-height:20px;margin-top:12px;}
+  .feedback.ok{color:var(--green);}
+  .feedback.no{color:var(--red);}
+
+  .footer{text-align:center;color:var(--muted);font-size:11px;padding:16px 0 8px;}
+  .fadehide{opacity:0;transition:opacity .3s;}
+
+  /* proactive: today card, reminder, toast */
+  .today,.remind{
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;margin-bottom:16px;box-shadow:var(--shadow);
+  }
+  .today{border-color:var(--teal-d);}
+  .trow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+  .tt{font-weight:800;font-size:16px;}
+  .ts{color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.4;}
+  .tgoal{font-weight:900;font-size:20px;color:var(--teal);font-variant-numeric:tabular-nums;}
+  .today .progress{margin-bottom:12px;}
+  .today .btn{width:100%;}
+  .insight{color:var(--yellow);font-size:12px;font-weight:700;margin-top:10px;text-align:center;min-height:0;}
+  .insight:empty{display:none;}
+  .autorow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 2px 0;color:var(--muted);font-size:11.5px;font-weight:700;}
+  .autorow .btn.sm{padding:6px 12px;font-size:11.5px;border-radius:10px;}
+  .remindrow{display:flex;align-items:center;gap:8px;margin-top:2px;}
+  .remindrow input[type=time]{
+    flex:1;background:var(--bg);color:var(--text);border:1px solid var(--line);
+    border-radius:12px;padding:10px;font-size:15px;font-weight:800;font-family:inherit;user-select:auto;
+  }
+  .remindrow .btn.sm{white-space:nowrap;}
+  .btn.on{background:var(--teal);color:#07231f;border-color:var(--teal);}
+  .toast{
+    position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+    background:var(--panel2);border:1px solid var(--teal-d);color:var(--text);
+    padding:11px 18px;border-radius:999px;font-size:13px;font-weight:800;box-shadow:var(--shadow);
+    opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= HOME ================= -->
+  <section id="home" class="screen active">
+    <header class="top">
+      <div class="brand"><span class="logo">📸</span> Foto Hafıza</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="chip" id="homeLevelChip">En iyi: —</span>
+        <button class="chip" id="soundBtn" aria-label="Ses efektleri" style="cursor:pointer;font-size:15px;line-height:1;padding:6px 10px">🔊</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <h1>Gözünde canlandır, hatırla.</h1>
+      <p>Sahneleri ve sayı dizilerini ezberle. Her turda gözünü ve hafızanı bir adım daha güçlendir.</p>
+    </div>
+
+    <div class="today" id="todayCard">
+      <div class="trow">
+        <div>
+          <div class="tt" id="todayTitle">Bugünün antrenmanı</div>
+          <div class="ts" id="todaySub"></div>
+        </div>
+        <div class="tgoal" id="todayGoal">0/3</div>
+      </div>
+      <div class="progress"><i id="todayBar"></i></div>
+      <button class="btn primary" id="todayGo">Başla</button>
+      <div class="insight" id="insight"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="stStreak">0</div><div class="k" id="stStreakK">GÜNLÜK SERİ</div></div>
+      <div class="stat"><div class="v" id="stSessions">0</div><div class="k">OYUN</div></div>
+      <div class="stat"><div class="v" id="stAcc">—</div><div class="k">İSABET</div></div>
+    </div>
+
+    <div style="color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.4px;margin:4px 4px 8px;">ZORLUK</div>
+    <div class="difficulty" id="difficulty">
+      <div class="diff" data-d="kolay">Kolay<small>Az yük</small></div>
+      <div class="diff sel" data-d="normal">Orta<small>Dengeli</small></div>
+      <div class="diff" data-d="zor">Zor<small>Çok yük</small></div>
+    </div>
+    <div class="diffinfo" id="diffInfo"></div>
+    <div class="autorow"><span id="autoTxt"></span><button class="btn sm" id="autoBtn"></button></div>
+
+    <div style="height:14px"></div>
+
+    <div class="mode" data-mode="scene">
+      <div class="ico">🖼️</div>
+      <div class="txt">
+        <h3>Sahne Ezberleme</h3>
+        <p>Kim, nerede, ne? Sahneyi kısa süre gör, sonra detayları hatırla.</p>
+      </div>
+      <div class="go">›</div>
+    </div>
+
+    <div class="mode" data-mode="match">
+      <div class="ico">🃏</div>
+      <div class="txt">
+        <h3>Eşleştirme</h3>
+        <p id="matchModeDesc">Aynı resim çiftlerini bul. Kolay 16, orta 32, zor 64 kare.</p>
+      </div>
+      <div class="go">›</div>
+    </div>
+
+    <div class="mode" data-mode="wordlist">
+      <div class="ico">📋</div>
+      <div class="txt">
+        <h3>Kelime Listesi</h3>
+        <p id="wordModeDesc">Çalışacağın kelimeleri seç, eşleştirmeyi onlarla oyna.</p>
+      </div>
+      <div class="go">›</div>
+    </div>
+
+    <div class="mode" data-mode="digits">
+      <div class="ico">🔢</div>
+      <div class="txt">
+        <h3>Sayı Dizisi Ezberleme</h3>
+        <p>Rakam dizisini ezberle ve sırasıyla geri yaz. Uzunluk her turda artar.</p>
+      </div>
+      <div class="go">›</div>
+    </div>
+
+    <div class="remind" id="remindCard" style="display:none">
+      <div class="trow">
+        <div>
+          <div class="tt">🔔 Hatırlatıcı</div>
+          <div class="ts" id="remindSub"></div>
+        </div>
+        <button class="btn sm" id="remindToggle">Aç</button>
+      </div>
+      <div class="remindrow" id="remindRow">
+        <input type="time" id="remindTime" value="20:00">
+        <button class="btn sm" id="remindAuto"></button>
+      </div>
+    </div>
+
+    <div class="footer">Foto Hafıza • zihnini her gün bir tur çalıştır</div>
+  </section>
+
+  <!-- ================= SCENE GAME ================= -->
+  <section id="sceneGame" class="screen">
+    <div class="gbar">
+      <button class="back" id="sceneBack">‹</button>
+      <div class="title">Sahne Ezberleme</div>
+      <div class="round" id="sceneRound">Tur 1/5</div>
+    </div>
+    <div class="progress"><i id="sceneProgress"></i></div>
+    <div class="stage" id="sceneStage"></div>
+  </section>
+
+  <!-- ================= DIGITS GAME ================= -->
+  <section id="digitsGame" class="screen">
+    <div class="gbar">
+      <button class="back" id="digitsBack">‹</button>
+      <div class="title">Sayı Dizisi</div>
+      <div class="round" id="digitsRound">Seviye 4</div>
+    </div>
+    <div class="progress"><i id="digitsProgress"></i></div>
+    <div class="stage" id="digitsStage"></div>
+  </section>
+
+  <!-- ================= MATCH GAME ================= -->
+  <section id="matchGame" class="screen">
+    <div class="gbar">
+      <button class="back" id="matchBack">‹</button>
+      <div class="title">Eşleştirme</div>
+      <div class="round" id="matchInfo">0/8 çift • 0 hamle</div>
+    </div>
+    <div class="progress"><i id="matchProgress"></i></div>
+    <div class="stage" id="matchStage"></div>
+  </section>
+
+  <!-- ================= WORD LIST ================= -->
+  <section id="wordList" class="screen">
+    <div class="gbar">
+      <button class="back" id="wordBack">‹</button>
+      <div class="title">Kelime Listesi</div>
+      <div class="round" id="wordCount">0 seçili</div>
+    </div>
+    <div class="wordtools">
+      <button class="btn sm" id="wordAll">Tümünü seç</button>
+      <button class="btn sm" id="wordNone">Temizle</button>
+    </div>
+    <div class="stage" id="wordStage"></div>
+    <div class="wordfoot">
+      <button class="btn primary" id="wordPlay">Seçili kelimelerle eşleştir</button>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(sel,root){return (root||document).querySelector(sel);};
+  var $$ = function(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));};
+
+  /* ---------------- Persistence ---------------- */
+  var STORE_KEY = "fotohafiza_v1";
+  var defaults = {
+    sessions:0, correct:0, total:0, bestScene:0, bestDigits:4,
+    streak:0, lastDay:"", lastN:-1, freeze:0,
+    selected:"all", sound:true,
+    words:{},                       // en -> {b:kutu, due:gün no, s:görülme, m:hata}
+    daily:{n:-1, c:0}, goal:3,      // bugün tamamlanan oyun sayısı / hedef
+    recent:[], autoDiff:true, diff:"normal", suggest:null,
+    hours:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    remind:{ on:false, auto:true, h:20, m:0 }
+  };
+  var store = load();
+  function load(){
+    var s = null;
+    try{ s = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){}
+    var o = Object.assign(JSON.parse(JSON.stringify(defaults)), (s && typeof s==="object") ? s : {});
+    // eski sürüm: lastDay UTC metniydi → gün numarasına çevir
+    if(o.lastN === -1 && o.lastDay){
+      var t = Date.parse(o.lastDay+"T00:00:00Z");
+      if(!isNaN(t)) o.lastN = Math.floor(t/86400000);
+    }
+    if(!o.words || typeof o.words!=="object") o.words = {};
+    if(!o.daily || typeof o.daily!=="object") o.daily = {n:-1,c:0};
+    if(!Array.isArray(o.recent)) o.recent = [];
+    if(!Array.isArray(o.hours) || o.hours.length!==24) o.hours = defaults.hours.slice();
+    if(!o.remind || typeof o.remind!=="object") o.remind = defaults.remind;
+    return o;
+  }
+  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }catch(e){} }
+
+  /* Yerel gün numarası (UTC değil: Türkiye'de gece yarısı kayması olmasın) */
+  function dayNum(){ return Math.floor((Date.now() - new Date().getTimezoneOffset()*60000)/86400000); }
+
+  function touchStreak(){
+    var today = dayNum();
+    if(store.lastN === today) return;
+    var d = today - store.lastN;
+    if(store.lastN >= 0 && d === 1) store.streak++;
+    else if(store.lastN >= 0 && d === 2 && store.freeze > 0){ store.freeze--; store.streak++; }
+    else store.streak = 1;
+    if(store.streak % 7 === 0) store.freeze = Math.min(2, store.freeze+1);
+    store.lastN = today;
+    save();
+  }
+  function currentStreak(){
+    if(store.lastN < 0) return 0;
+    var d = dayNum() - store.lastN;
+    return (d <= 1 || (d === 2 && store.freeze > 0)) ? store.streak : 0;
+  }
+
+  function toast(msg){
+    var el = $("#toast"); if(!el) return;
+    el.textContent = msg; el.classList.add("show");
+    setTimeout(function(){ el.classList.remove("show"); }, 2600);
+  }
+
+  /* ---------------- Ses efektleri (Web Audio, dosya gerekmez) ---------------- */
+  var audioCtx = null;
+  function ac(){
+    if(!store.sound) return null;
+    try{
+      if(!audioCtx){
+        var C = window.AudioContext || window.webkitAudioContext;
+        if(!C) return null;
+        audioCtx = new C();
+      }
+      if(audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }catch(e){ return null; }
+  }
+  function tone(freq, dur, type, vol, delay){
+    var c = ac(); if(!c) return;
+    var t = c.currentTime + (delay||0);
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  var SFX = {
+    start:function(){ tone(523,.12,"sine",.14); tone(784,.2,"sine",.14,.1); },        // tur başı
+    tick:function(){ tone(880,.06,"square",.05); },                                   // son 3 sn
+    go:function(){ tone(660,.1,"triangle",.14); tone(440,.22,"triangle",.14,.09); },  // süre doldu
+    ok:function(){ tone(660,.1,"sine",.16); tone(990,.2,"sine",.16,.09); },           // doğru
+    no:function(){ tone(220,.25,"sawtooth",.09); tone(165,.32,"sawtooth",.09,.12); }, // yanlış
+    win:function(){ [523,659,784,1047].forEach(function(f,i){ tone(f,.22,"triangle",.15,i*.11); }); },
+    lose:function(){ tone(392,.2,"triangle",.12); tone(311,.38,"triangle",.12,.18); }
+  };
+  function sfx(n){ try{ SFX[n](); }catch(e){} }
+  function refreshSound(){ var b = $("#soundBtn"); if(b){ b.textContent = store.sound ? "🔊" : "🔇"; b.style.opacity = store.sound ? "" : ".6"; } }
+  $("#soundBtn").addEventListener("click", function(){
+    store.sound = !store.sound; save(); refreshSound();
+    if(store.sound) sfx("ok");
+  });
+
+  /* ---------------- Aralıklı tekrar (Leitner) ---------------- */
+  var BOX_DAYS = [0,1,2,4,8,16,32];
+  function recordWord(en, ok){
+    if(!en) return;
+    var r = store.words[en] || (store.words[en] = {b:0, due:0, s:0, m:0});
+    r.s++;
+    if(ok){ r.b = Math.min(6, r.b+1); } else { r.b = 0; r.m++; }
+    r.due = dayNum() + BOX_DAYS[r.b];
+  }
+  // Vakti gelen (zayıf önce) → yeni → ileri tarihli sırasıyla kelime seç
+  function pickWords(pool, n){
+    var t = dayNum(), due = [], fresh = [], later = [];
+    pool.forEach(function(it){
+      var r = store.words[it[2]];
+      if(!r) fresh.push(it); else if(r.due <= t) due.push(it); else later.push(it);
+    });
+    due = shuffle(due).sort(function(a,b){ return store.words[a[2]].b - store.words[b[2]].b; });
+    fresh = shuffle(fresh); later = shuffle(later);
+    var head = due.slice(0, Math.ceil(n*0.6));
+    return head.concat(fresh).concat(due.slice(head.length)).concat(later).slice(0, n);
+  }
+  // bugünden d gün sonrasına kadar vakti gelmiş kelime sayısı (seçili kelimeler içinde)
+  function dueCount(d){
+    var t = dayNum() + (d||0), n = 0;
+    selectedKeys().forEach(function(k){ var r = store.words[k]; if(r && r.due <= t) n++; });
+    return n;
+  }
+  function weakestCategory(){
+    var best = null;
+    WORD_CATS.forEach(function(c){
+      var s = 0, m = 0;
+      c.words.forEach(function(w){ var r = store.words[w[2]]; if(r){ s += r.s; m += r.m; } });
+      if(s >= 8){ var acc = 1 - m/s; if(!best || acc < best.acc) best = {name:c.name, acc:acc}; }
+    });
+    return (best && best.acc < 0.85) ? best : null;
+  }
+  function peakHour(){
+    var bi = -1, bv = 0, total = 0;
+    store.hours.forEach(function(v,i){ total += v; if(v > bv){ bv = v; bi = i; } });
+    return (total >= 5 && bi >= 0) ? bi : null;
+  }
+  function wordOfDay(){
+    var items = getSelectedItems(), t = dayNum();
+    var due = items.filter(function(w){ var r = store.words[w[2]]; return r && r.due <= t; });
+    var it = due.length ? due[t % due.length] : items[t % items.length];
+    return it ? (it[0]+" "+it[2]+" = "+it[1]) : "";
+  }
+
+  /* ---------------- Android köprüsü (bildirimler) ---------------- */
+  function syncNative(){
+    try{
+      if(!(window.AndroidApp && window.AndroidApp.syncState)) return;
+      var cum = []; for(var d=0; d<7; d++) cum.push(dueCount(d));
+      window.AndroidApp.syncState(store.lastN, currentStreak(), cum.join(","), dayNum(), wordOfDay());
+    }catch(e){}
+  }
+  function remindTime(){
+    var r = store.remind, h = r.h, m = r.m;
+    if(r.auto){ var p = peakHour(); if(p !== null){ h = p; m = 0; } }
+    return {h:h, m:m};
+  }
+  function applyReminder(){
+    try{
+      if(!(window.AndroidApp && window.AndroidApp.setReminder)) return;
+      var t = remindTime();
+      window.AndroidApp.setReminder(!!store.remind.on, t.h, t.m);
+    }catch(e){}
+  }
+  function pad2(n){ return (n<10?"0":"")+n; }
+  function refreshRemind(){
+    var card = $("#remindCard"); if(!card) return;
+    if(!window.AndroidApp){ card.style.display = "none"; return; }
+    card.style.display = "";
+    var r = store.remind, t = remindTime();
+    $("#remindToggle").textContent = r.on ? "Açık" : "Aç";
+    $("#remindToggle").className = "btn sm" + (r.on ? " on" : "");
+    $("#remindRow").style.display = r.on ? "flex" : "none";
+    $("#remindTime").value = pad2(t.h)+":"+pad2(t.m);
+    $("#remindTime").disabled = !!r.auto;
+    $("#remindTime").style.opacity = r.auto ? ".6" : "";
+    $("#remindAuto").textContent = r.auto ? "Otomatik: açık" : "Otomatik: kapalı";
+    $("#remindSub").textContent = r.on
+      ? ("Oynamadığın günlerde "+pad2(t.h)+":"+pad2(t.m)+" civarı hatırlatılır"+(r.auto ? " (oynadığın saate göre)" : "")+".")
+      : "Serini ve tekrar zamanı gelen kelimeleri hatırlatır.";
+  }
+  window.onNotifPermission = function(ok){
+    if(!ok){
+      store.remind.on = false; save(); applyReminder(); refreshRemind();
+      toast("Bildirim izni verilmedi");
+    }
+  };
+  $("#remindToggle").addEventListener("click", function(){
+    store.remind.on = !store.remind.on; save(); applyReminder(); refreshRemind();
+    if(store.remind.on) toast("Hatırlatıcı açıldı 🔔");
+  });
+  $("#remindAuto").addEventListener("click", function(){
+    store.remind.auto = !store.remind.auto; save(); applyReminder(); refreshRemind();
+  });
+  $("#remindTime").addEventListener("change", function(){
+    var m = /^(\d{1,2}):(\d{2})$/.exec(this.value);
+    if(!m) return;
+    store.remind.h = Math.min(23, +m[1]); store.remind.m = Math.min(59, +m[2]);
+    store.remind.auto = false; save(); applyReminder(); refreshRemind();
+  });
+
+  /* ---------------- Oyun sonu: günlük hedef, saat dağılımı, uyarlanan zorluk ---------------- */
+  var DIFF_ORDER = ["kolay","normal","zor"];
+  function gameDone(pct){
+    var t = dayNum();
+    if(store.daily.n !== t) store.daily = {n:t, c:0};
+    store.daily.c++;
+    store.hours[new Date().getHours()]++;
+    if(pct !== null && pct !== undefined) recordPerf(pct);
+    save();
+    if(store.remind.on && store.remind.auto) applyReminder();
+    syncNative();
+  }
+  function recordPerf(pct){
+    store.recent.push(pct);
+    while(store.recent.length > 3) store.recent.shift();
+    if(store.recent.length < 3) return;
+    var avg = store.recent.reduce(function(a,b){ return a+b; }, 0) / 3;
+    var i = DIFF_ORDER.indexOf(difficulty), ni = i;
+    if(avg >= 85 && i < 2) ni = i+1;
+    else if(avg <= 50 && i > 0) ni = i-1;
+    store.suggest = (ni !== i) ? DIFF_ORDER[ni] : null;
+    if(ni !== i){
+      store.recent = [];
+      if(store.autoDiff){
+        setDifficulty(DIFF_ORDER[ni]);
+        toast("Zorluk otomatik ayarlandı: "+DIFF[DIFF_ORDER[ni]].label);
+      }
+    }
+  }
+
+  function refreshToday(){
+    var t = dayNum();
+    var c = (store.daily.n === t) ? store.daily.c : 0, g = store.goal;
+    var done = c >= g, due = dueCount(0);
+    $("#todayGoal").textContent = Math.min(c,g)+"/"+g;
+    $("#todayBar").style.width = Math.min(100, c/g*100)+"%";
+    $("#todayTitle").textContent = done ? "Bugünün hedefi tamam 🎉" : "Bugünün antrenmanı";
+    $("#todaySub").textContent = (due > 0 ? "🔁 "+due+" kelime tekrar zamanı • " : "")+"3 oyun • ≈4 dk";
+    $("#todayGo").textContent = done ? "Bir tur daha" : "Başla";
+    var w = weakestCategory();
+    $("#insight").textContent = w ? ("🔎 En çok zorlandığın: "+w.name+" (%"+Math.round(w.acc*100)+")") : "";
+  }
+
+  function refreshHome(){
+    $("#stStreak").textContent = currentStreak();
+    $("#stStreakK").textContent = "GÜNLÜK SERİ" + (store.freeze ? " • 🧊"+store.freeze : "");
+    $("#stSessions").textContent = store.sessions;
+    $("#stAcc").textContent = store.total ? Math.round(store.correct/store.total*100)+"%" : "—";
+    var best = Math.max(store.bestScene, 0);
+    $("#homeLevelChip").textContent = best>0 ? ("En iyi sahne: Lv."+best) : "Yeni başlıyorsun";
+    updateWordCount();
+    refreshToday();
+    refreshRemind();
+    updateDiffInfo();
+    syncNative();
+  }
+
+  /* ---------------- Navigation ---------------- */
+  function show(id){
+    $$(".screen").forEach(function(s){ s.classList.remove("active"); });
+    $("#"+id).classList.add("active");
+    window.scrollTo(0,0);
+  }
+
+  /* ---------------- Difficulty config (birleşik sistem) ---------------- */
+  var DIFF = {
+    kolay:  { time:9,   qs:2, label:"Kolay", sceneBase:3, digitBase:4, matchPairs:8  },
+    normal: { time:6,   qs:3, label:"Orta",  sceneBase:5, digitBase:5, matchPairs:16 },
+    zor:    { time:4,   qs:3, label:"Zor",   sceneBase:7, digitBase:6, matchPairs:32 }
+  };
+  var difficulty = DIFF[store.diff] ? store.diff : "normal";
+  function diffOf(){ return DIFF[difficulty] || DIFF.normal; }
+  function setDifficulty(d){
+    difficulty = d; store.diff = d; save();
+    $$(".diff").forEach(function(el){ el.classList.toggle("sel", el.dataset.d === d); });
+    updateDiffInfo();
+  }
+  function updateDiffInfo(){
+    var d = diffOf();
+    var el = $("#diffInfo");
+    if(el) el.textContent = "Sahne "+d.sceneBase+" nesne • Eşleştirme "+(d.matchPairs*2)+" kare • Sayı "+d.digitBase+" hane";
+    var at = $("#autoTxt"), ab = $("#autoBtn");
+    if(at && ab){
+      if(store.autoDiff){ at.textContent = "✨ Zorluk performansına göre otomatik ayarlanır"; ab.textContent = "Otomatik: açık"; }
+      else if(store.suggest && store.suggest !== difficulty){ at.textContent = "✨ Önerilen: "+DIFF[store.suggest].label; ab.textContent = "Uygula"; }
+      else { at.textContent = "Zorluğu sen seçiyorsun"; ab.textContent = "Otomatik: kapalı"; }
+    }
+  }
+  $("#autoBtn").addEventListener("click", function(){
+    if(!store.autoDiff && store.suggest && store.suggest !== difficulty){
+      setDifficulty(store.suggest); store.suggest = null; save(); updateDiffInfo(); return;
+    }
+    store.autoDiff = !store.autoDiff; save(); updateDiffInfo();
+  });
+  $("#difficulty").addEventListener("click", function(e){
+    var b = e.target.closest(".diff"); if(!b) return;
+    store.autoDiff = false;           // elle seçim otomatiği kapatır
+    setDifficulty(b.dataset.d);
+  });
+
+  /* ---------------- Word pool (kategorili) ---------------- */
+  var WORD_CATS = [
+    { name:"Hayvanlar", words:[
+      ["🐶","köpek","dog"],["🐱","kedi","cat"],["🐭","fare","mouse"],["🐹","hamster","hamster"],["🐰","tavşan","rabbit"],
+      ["🦊","tilki","fox"],["🐻","ayı","bear"],["🐼","panda","panda"],["🐨","koala","koala"],["🐯","kaplan","tiger"],
+      ["🦁","aslan","lion"],["🐮","inek","cow"],["🐷","domuz","pig"],["🐸","kurbağa","frog"],["🐵","maymun","monkey"],
+      ["🐔","tavuk","chicken"],["🐤","civciv","chick"],["🐧","penguen","penguin"],["🦆","ördek","duck"],["🦅","kartal","eagle"],
+      ["🦉","baykuş","owl"],["🦇","yarasa","bat"],["🐺","kurt","wolf"],["🐴","at","horse"],["🦄","tek boynuzlu at","unicorn"],
+      ["🐝","arı","bee"],["🐌","salyangoz","snail"],["🐢","kaplumbağa","turtle"],["🐍","yılan","snake"],["🐙","ahtapot","octopus"],
+      ["🦀","yengeç","crab"],["🐬","yunus","dolphin"],["🐳","balina","whale"],["🦈","köpek balığı","shark"],["🐟","balık","fish"],
+      ["🦋","kelebek","butterfly"],["🐞","uğur böceği","ladybug"],["🦕","dinozor","dinosaur"],["🦖","t-rex","t-rex"],
+      ["🦓","zebra","zebra"],["🦒","zürafa","giraffe"],["🐘","fil","elephant"],["🦏","gergedan","rhino"],["🦛","su aygırı","hippo"],
+      ["🐪","deve","camel"],["🦘","kanguru","kangaroo"],["🐃","manda","buffalo"],["🐏","koç","ram"],["🐑","koyun","sheep"],
+      ["🐐","keçi","goat"],["🦌","geyik","deer"],["🐩","kaniş","poodle"],["🐓","horoz","rooster"],["🦃","hindi","turkey bird"],
+      ["🦚","tavus kuşu","peacock"],["🦜","papağan","parrot"],["🦢","kuğu","swan"],["🕊️","güvercin","dove"],["🦝","rakun","raccoon"],
+      ["🦔","kirpi","hedgehog"],["🐿️","sincap","squirrel"],["🐀","sıçan","rat"],["🐊","timsah","crocodile"],["🦎","kertenkele","lizard"],
+      ["🐉","ejderha","dragon"],["🦑","kalamar","squid"],["🦞","ıstakoz","lobster"],["🐠","tropik balık","tropical fish"],["🐡","balon balığı","pufferfish"],
+      ["🐚","deniz kabuğu","seashell"],["🦂","akrep","scorpion"],["🕷️","örümcek","spider"],["🕸️","örümcek ağı","spider web"],["🦗","çekirge","grasshopper"],
+      ["🦟","sivrisinek","mosquito"],["🐜","karınca","ant"],["🐛","tırtıl","caterpillar"],["🦠","mikrop","microbe"],["🐾","pati izi","paw prints"],
+      ["🦴","kemik","bone"],["🦷","diş","tooth"],["🦙","lama","llama"],["🦡","porsuk","badger"],["🐗","yaban domuzu","boar"],
+      ["🐦","kuş","bird"],["🐒","şempanze","chimp"],["🦍","goril","gorilla"],["🐆","leopar","leopard"],["🐣","çıkan civciv","hatching chick"]
+    ]},
+    { name:"Meyve & Sebze", words:[
+      ["🍎","elma","apple"],["🍌","muz","banana"],["🍇","üzüm","grapes"],["🍓","çilek","strawberry"],["🍊","portakal","orange"],
+      ["🍋","limon","lemon"],["🍉","karpuz","watermelon"],["🍒","kiraz","cherry"],["🍑","şeftali","peach"],["🍍","ananas","pineapple"],
+      ["🥝","kivi","kiwi"],["🥭","mango","mango"],["🍐","armut","pear"],["🍈","kavun","melon"],["🥥","hindistan cevizi","coconut"],
+      ["🥑","avokado","avocado"],["🍅","domates","tomato"],["🥕","havuç","carrot"],["🥔","patates","potato"],["🌽","mısır","corn"],
+      ["🥦","brokoli","broccoli"],["🥬","marul","lettuce"],["🥒","salatalık","cucumber"],["🌶️","biber","chili"],["🍆","patlıcan","eggplant"],
+      ["🥗","salata","salad"],["🌰","kestane","chestnut"],["🥜","fıstık","peanut"],
+      ["🍏","yeşil elma","green apple"],["🍄","mantar","mushroom"],["🍠","tatlı patates","sweet potato"],["🌾","buğday","wheat"],["🌿","ot","herb"],
+      ["🥖","baget","baguette"]
+    ]},
+    { name:"Yiyecek & İçecek", words:[
+      ["🍞","ekmek","bread"],["🧀","peynir","cheese"],["🥚","yumurta","egg"],["🍕","pizza","pizza"],["🍔","hamburger","hamburger"],
+      ["🌭","sosisli","hot dog"],["🍟","patates kızartması","fries"],["🥪","sandviç","sandwich"],["🌮","tako","taco"],["🍝","spagetti","spaghetti"],
+      ["🍜","erişte","noodles"],["🍲","güveç","stew"],["🍚","pilav","rice"],["🍣","suşi","sushi"],["🍤","karides","shrimp"],
+      ["🥟","mantı","dumpling"],["🍦","dondurma","ice cream"],["🍰","kek","cake"],["🧁","kapkek","cupcake"],["🍩","donut","donut"],
+      ["🍪","kurabiye","cookie"],["🍫","çikolata","chocolate"],["🍬","şeker","candy"],["🍭","lolipop","lollipop"],["☕","kahve","coffee"],
+      ["🍵","çay","tea"],["🥛","süt","milk"],["🍯","bal","honey"],
+      ["🥐","kruvasan","croissant"],["🥨","simit","pretzel"],["🥯","bagel","bagel"],["🥞","krep","pancakes"],["🥓","pastırma","bacon"],
+      ["🥩","biftek","steak"],["🍗","tavuk but","chicken leg"],["🍖","kemikli et","meat"],["🥙","dürüm","wrap"],["🌯","burrito","burrito"],
+      ["🥘","tava yemeği","paella"],["🍛","köri","curry"],["🍱","bento","bento"],["🍙","pirinç topu","rice ball"],["🍘","pirinç krakeri","rice cracker"],
+      ["🍥","balık keki","fish cake"],["🥠","şans kurabiyesi","fortune cookie"],["🍡","dango","dango"],["🍢","şiş","skewer"],["🍧","buzlu tatlı","shaved ice"],
+      ["🍨","sundae","sundae"],["🥧","turta","pie"],["🍮","puding","pudding"],["🥤","gazlı içecek","soda"],["🥣","mısır gevreği","cereal"],
+      ["🥡","paket yemek","takeout"],["🥢","çubuk","chopsticks"],["🍴","çatal bıçak","fork and knife"],["🥄","kaşık","spoon"],["🍽️","tabak","plate"],
+      ["🥫","konserve","canned food"],["🧂","tuz","salt"],["🍿","patlamış mısır","popcorn"],["🍳","sahanda yumurta","fried egg"],["🍼","biberon","baby bottle"],
+      ["🥮","ay pastası","mooncake"]
+    ]},
+    { name:"Ev & Nesneler", words:[
+      ["🔑","anahtar","key"],["🚪","kapı","door"],["🛋️","kanepe","couch"],["🛏️","yatak","bed"],["🚽","tuvalet","toilet"],
+      ["🛁","küvet","bathtub"],["🚿","duş","shower"],["🧴","losyon","lotion"],["🧻","tuvalet kağıdı","toilet paper"],["🧼","sabun","soap"],
+      ["🧽","sünger","sponge"],["🧹","süpürge","broom"],["🧺","sepet","basket"],["🧯","yangın söndürücü","extinguisher"],["🕰️","saat","clock"],
+      ["⏰","çalar saat","alarm clock"],["🖼️","tablo","picture"],["📺","televizyon","television"],["📻","radyo","radio"],["☎️","telefon","telephone"],
+      ["📱","cep telefonu","phone"],["💡","ampul","light bulb"],["🔦","el feneri","flashlight"],["🕯️","mum","candle"],["🛍️","alışveriş çantası","shopping bag"],
+      ["💳","kredi kartı","credit card"],["🔌","fiş","plug"],["🔋","pil","battery"],["🧸","oyuncak ayı","teddy bear"],
+      ["🛒","alışveriş arabası","shopping cart"],["🧷","çengelli iğne","safety pin"],["🧵","iplik","thread"],["🧶","yün yumağı","yarn"],["🧲","mıknatıs","magnet"],
+      ["🧰","alet çantası","toolbox"],["🧪","deney tüpü","test tube"],["🧫","petri kabı","petri dish"],["🧬","dna","dna"],["🔬","mikroskop","microscope"],
+      ["🔭","teleskop","telescope"],["📡","uydu çanağı","satellite dish"],["💊","hap","pill"],["💉","şırınga","syringe"],["🌡️","termometre","thermometer"],
+      ["🔨","çekiç","hammer"],["🔧","İngiliz anahtarı","wrench"],["🔩","cıvata","bolt"],["⚙️","dişli","gear"],["⛏️","kazma","pickaxe"],
+      ["✂️","makas","scissors"],["📎","ataç","paperclip"],["📌","raptiye","pushpin"],["📏","cetvel","ruler"],["📐","gönye","set square"],
+      ["🔒","kilit","lock"],["🔓","açık kilit","unlock"],["🗝️","eski anahtar","old key"],["🛎️","servis zili","service bell"],["🔔","çan","bell"],
+      ["📢","hoparlör","loudspeaker"],["📣","megafon","megaphone"],["🧳","bavul","luggage"],["☂️","şemsiye","umbrella"],["🎁","hediye","gift"],
+      ["🎈","balon","balloon"],["🎀","kurdele","ribbon"],["📦","koli","package"],["📫","posta kutusu","mailbox"],["✉️","zarf","envelope"],
+      ["📰","gazete","newspaper"],["📚","kitaplar","books"],["📓","defter","notebook"],["📅","takvim","calendar"],["📈","grafik","chart"],
+      ["🗑️","çöp kutusu","wastebasket"],["💻","dizüstü bilgisayar","laptop"],["🖥️","masaüstü bilgisayar","desktop computer"],["⌨️","klavye","keyboard"],["🖱️","fare","computer mouse"],
+      ["🖨️","yazıcı","printer"],["💾","disket","floppy disk"],["💿","cd","compact disc"],["📼","video kaset","videocassette"],["📹","kamera","video camera"],
+      ["📞","telefon ahizesi","phone receiver"],["📠","faks","fax"],["🔍","büyüteç","magnifying glass"],["🏷️","etiket","label"],["🔖","ayraç","bookmark"],
+      ["⚖️","terazi","scale"],["⚓","çapa","anchor"],["🧭","pusula","compass"],["🗺️","dünya haritası","world map"],["🏺","amfora","amphora"],
+      ["🔮","kristal küre","crystal ball"],["🧿","nazar boncuğu","evil eye"],["🚰","musluk","faucet"],["🕹️","oyun kolu","joystick"],["🎣","olta","fishing rod"],
+      ["🎠","atlıkarınca","carousel"],["🎡","dönme dolap","ferris wheel"],["🎢","hız treni","roller coaster"],["⛺","çadır","tent"],["🛢️","varil","oil drum"],
+      ["🔗","zincir halkası","link"],["⛓️","zincir","chains"],["💰","para kesesi","money bag"],["💵","dolar","dollar"],["💶","euro","euro"],
+      ["💸","uçan para","flying money"],["🏧","atm","atm"],["🧾","fiş belgesi","receipt"],["📇","kartlık","card index"],["📋","pano","clipboard"],
+      ["📁","klasör","folder"],["📂","açık klasör","open folder"],["🗂️","ayraçlı dosya","dividers"],["🗄️","dosya dolabı","file cabinet"],["📍","konum","location pin"],
+      ["🧮","abaküs","abacus"],["⌛","kum saati","hourglass"],["⏳","akan kum saati","sand timer"],["⏱️","kronometre","stopwatch"],["⏲️","zamanlayıcı","timer"],
+      ["💈","berber direği","barber pole"]
+    ]},
+    { name:"Giysi & Aksesuar", words:[
+      ["👕","tişört","shirt"],["👔","kravat","tie"],["👖","kot pantolon","jeans"],["🧥","ceket","coat"],["🧣","atkı","scarf"],
+      ["🧤","eldiven","gloves"],["🧦","çorap","socks"],["👗","elbise","dress"],["👙","bikini","bikini"],["👠","topuklu ayakkabı","high heel"],
+      ["👟","spor ayakkabı","sneaker"],["🥾","bot","boot"],["🥿","babet","flat shoe"],["👞","ayakkabı","shoe"],["🎩","silindir şapka","top hat"],
+      ["🧢","kep","cap"],["👒","kadın şapkası","hat"],["🎓","mezuniyet kepi","graduation cap"],["⛑️","baret","helmet"],["👜","el çantası","handbag"],
+      ["👛","cüzdan","purse"],["🎒","sırt çantası","backpack"],["💼","evrak çantası","briefcase"],["👓","gözlük","glasses"],["🕶️","güneş gözlüğü","sunglasses"],
+      ["💄","ruj","lipstick"],["💍","yüzük","ring"],["⌚","kol saati","watch"],
+      ["👚","bluz","blouse"],["👘","kimono","kimono"],["👑","taç","crown"],["💎","elmas","gem"],["👝","el çantası kese","pouch"],
+      ["👡","sandalet","sandal"],["👢","çizme","tall boot"],["🥼","laboratuvar önlüğü","lab coat"],["🥽","gözlük koruyucu","goggles"],["💅","oje","nail polish"],
+      ["🎽","koşu atleti","running shirt"],["📿","tespih","prayer beads"]
+    ]},
+    { name:"Taşıtlar", words:[
+      ["🚗","araba","car"],["🚕","taksi","taxi"],["🚌","otobüs","bus"],["🚑","ambulans","ambulance"],["🚒","itfaiye","fire truck"],
+      ["🚓","polis arabası","police car"],["🚙","suv","suv"],["🚐","minibüs","minibus"],["🚚","kamyon","truck"],["🚛","tır","lorry"],
+      ["🚜","traktör","tractor"],["🏎️","yarış arabası","race car"],["🏍️","motosiklet","motorcycle"],["🚲","bisiklet","bicycle"],["🛴","scooter","scooter"],
+      ["🚂","tren","train"],["🚇","metro","subway"],["🚢","gemi","ship"],["⛵","yelkenli","sailboat"],["🚤","sürat teknesi","speedboat"],
+      ["✈️","uçak","airplane"],["🚁","helikopter","helicopter"],["🚀","roket","rocket"],["🛸","ufo","ufo"],
+      ["🛵","moped","moped"],["🚃","tren vagonu","railway car"],["🚄","hızlı tren","high speed train"],["🚅","mermi tren","bullet train"],["🚊","tramvay","tram"],
+      ["🛩️","küçük uçak","small plane"],["🛫","kalkış","takeoff"],["🛬","iniş","landing"],["💺","koltuk","seat"],["🚡","teleferik","tramway"],
+      ["🛥️","motor yat","motor boat"],["🛳️","yolcu gemisi","cruise ship"],["⛴️","feribot","ferry"],["🚣","kayık","rowboat"],["🛶","kano","canoe"],
+      ["🚏","otobüs durağı","bus stop"],["⛽","benzin pompası","fuel pump"],["🚦","trafik ışığı","traffic light"],["🚧","yol çalışması","construction"],["🚨","siren","siren"],
+      ["🛑","dur işareti","stop sign"],["🛤️","demiryolu","railway track"],["🏁","bitiş bayrağı","chequered flag"],["🛰️","uydu","satellite"],["🛷","kızak","sled"]
+    ]},
+    { name:"Doğa & Hava", words:[
+      ["⭐","yıldız","star"],["🌙","ay","moon"],["☀️","güneş","sun"],["☁️","bulut","cloud"],["🌈","gökkuşağı","rainbow"],
+      ["🔥","ateş","fire"],["⚡","şimşek","lightning"],["❄️","kar tanesi","snowflake"],["🌊","dalga","wave"],["💧","damla","droplet"],
+      ["🌸","çiçek","flower"],["🌹","gül","rose"],["🌻","ayçiçeği","sunflower"],["🌷","lale","tulip"],["🌳","ağaç","tree"],
+      ["🌲","çam","evergreen"],["🌴","palmiye","palm tree"],["🌵","kaktüs","cactus"],["🍀","yonca","clover"],["🍁","yaprak","leaf"],
+      ["🌱","filiz","seedling"],["🌍","dünya","earth"],["🌋","yanardağ","volcano"],["🏔️","dağ","mountain"],
+      ["🌑","yeni ay","new moon"],["🌕","dolunay","full moon"],["🌠","kayan yıldız","shooting star"],["🌌","samanyolu","milky way"],["☄️","kuyruklu yıldız","comet"],
+      ["🌪️","kasırga","tornado"],["🌫️","sis","fog"],["💨","rüzgar","wind"],["☔","yağmur","rain"],["⛄","kardan adam","snowman"],
+      ["⛈️","fırtına","thunderstorm"],["⛅","parçalı bulutlu","partly sunny"],["🏜️","çöl","desert"],["🏝️","ada","island"],["🌅","gün doğumu","sunrise"],
+      ["🌇","gün batımı","sunset"],["🌃","gece şehri","night city"],["🗻","fuji dağı","mount fuji"],["🍂","düşen yaprak","fallen leaf"],["🍃","rüzgarda yaprak","leaf in wind"],
+      ["🌼","papatya","daisy"],["🌺","ebegümeci","hibiscus"],["☘️","üç yapraklı yonca","shamrock"],["🎄","yılbaşı ağacı","christmas tree"],["🎃","balkabağı","pumpkin"],
+      ["🥀","solmuş çiçek","wilted flower"],["💐","buket","bouquet"],["🏖️","plaj","beach"]
+    ]},
+    { name:"Spor & Oyun", words:[
+      ["⚽","futbol topu","soccer"],["🏀","basketbol","basketball"],["🏈","amerikan futbolu","american football"],["⚾","beyzbol","baseball"],["🎾","tenis","tennis"],
+      ["🏐","voleybol","volleyball"],["🎱","bilardo","billiards"],["🏓","pinpon","ping pong"],["🏸","badminton","badminton"],["🥊","boks","boxing"],
+      ["🥋","savaş sanatı","martial arts"],["🎿","kayak","ski"],["⛸️","buz pateni","ice skate"],["🏊","yüzücü","swimmer"],["🏄","sörfçü","surfer"],
+      ["🚴","bisikletçi","cyclist"],["🏋️","halterci","weightlifter"],["🏹","okçuluk","archery"],["🎯","dart","dart"],["🎳","bowling","bowling"],
+      ["🎮","oyun kolu","game controller"],["🎲","zar","dice"],["🧩","puzzle","puzzle"],["♟️","satranç","chess"],
+      ["⛳","golf bayrağı","golf flag"],["🏌️","golfçü","golfer"],["🏇","at yarışı","horse racing"],["🤺","eskrim","fencing"],["🤸","akrobat","gymnast"],
+      ["🤼","güreşçiler","wrestlers"],["🤽","sutopu","water polo"],["🤾","hentbol","handball"],["🤹","jonglör","juggler"],["🧗","dağcı","climber"],
+      ["🧘","yoga","yoga"],["🏆","kupa","trophy"],["🥇","altın madalya","gold medal"],["🥈","gümüş madalya","silver medal"],["🥉","bronz madalya","bronze medal"],
+      ["🏅","madalya","medal"],["🥅","kale ağı","goal net"],["🏑","çim hokeyi","field hockey"],["🏒","buz hokeyi","ice hockey"],["🥍","lakros","lacrosse"],
+      ["🏏","kriket","cricket"],["🛹","kaykay","skateboard"],["🥌","curling taşı","curling stone"],["🏂","snowboardcu","snowboarder"],["⛷️","kayakçı","skier"],
+      ["🏉","ragbi","rugby"],["🥎","softbol","softball"],["🥏","frizbi","frisbee"],["🃏","joker","joker"],["🀄","mahjong","mahjong"],
+      ["🎰","slot makinesi","slot machine"]
+    ]},
+    { name:"Müzik & Sanat", words:[
+      ["🎸","gitar","guitar"],["🎹","piyano","piano"],["🎺","trompet","trumpet"],["🎻","keman","violin"],["🥁","davul","drum"],
+      ["🎷","saksofon","saxophone"],["🎤","mikrofon","microphone"],["🎧","kulaklık","headphones"],["🎼","nota","music score"],["🎵","müzik notası","music note"],
+      ["🎨","palet","palette"],["🖌️","boya fırçası","paintbrush"],["🖍️","pastel boya","crayon"],["🖊️","tükenmez kalem","pen"],["📖","açık kitap","open book"],
+      ["🎬","film","movie clapper"],["🎭","tiyatro","theater"],["📷","fotoğraf makinesi","camera"],["📝","not kağıdı","memo"],["🎪","sirk","circus"],
+      ["🎙️","stüdyo mikrofonu","studio microphone"],["🎶","melodi","melody"],["📽️","projektör","projector"],["🖋️","dolma kalem","fountain pen"],["✒️","kalem ucu","nib"],
+      ["✏️","kurşun kalem","pencil"],["📕","kapalı kitap","closed book"],["🗿","moai heykeli","moai"],["🏛️","antik bina","classical building"],["📯","posta borusu","postal horn"]
+    ]},
+    { name:"İnsan & Vücut", words:[
+      ["👤","kişi","person"],["👨","adam","man"],["👩","kadın","woman"],["👶","bebek","baby"],["👦","oğlan","boy"],
+      ["👧","kız","girl"],["👴","yaşlı adam","old man"],["👵","yaşlı kadın","old woman"],["👮","polis memuru","police officer"],["👷","inşaat işçisi","builder"],
+      ["💂","muhafız","guard"],["🕵️","dedektif","detective"],["🦵","bacak","leg"],["🦶","ayak","foot"],["👁️","göz","eye"],
+      ["👂","kulak","ear"],["👃","burun","nose"],["👄","ağız","mouth"],["✋","el","hand"],["👍","başparmak","thumbs up"],
+      ["🙏","dua eden eller","praying"],["💪","kas","muscle"],
+      ["🧔","sakallı kişi","bearded person"],["👱","sarışın kişi","blond person"],["👳","sarıklı kişi","turban"],["🤴","prens","prince"],["👸","prenses","princess"],
+      ["🎅","noel baba","santa"],["🧙","büyücü","mage"],["🧚","peri","fairy"],["🧛","vampir","vampire"],["🧜","deniz kızı","mermaid"],
+      ["🧝","elf","elf"],["🧞","cin","genie"],["🧟","zombi","zombie"],["🦸","süper kahraman","superhero"],["🦹","süper kötü","supervillain"],
+      ["👼","melek bebek","baby angel"],["🤰","hamile","pregnant"],["💃","dansçı","dancer"],["🕺","erkek dansçı","man dancing"],["🚶","yürüyen","walker"],
+      ["🏃","koşucu","runner"],["👣","ayak izleri","footprints"],["🧠","beyin","brain"],["👅","dil","tongue"],["👀","gözler","eyes"],
+      ["💋","öpücük izi","kiss mark"],["🤝","el sıkışma","handshake"],["👏","alkış","clap"],["🙌","eller havada","raised hands"],["👋","el sallama","waving hand"],
+      ["🤚","el sırtı","raised back hand"],["✌️","zafer işareti","victory hand"],["🤞","çapraz parmak","crossed fingers"],["🤟","seni seviyorum işareti","love you gesture"],["🤘","rock işareti","rock on"],
+      ["👌","tamam işareti","ok hand"],["👈","sola işaret","point left"],["👉","sağa işaret","point right"],["👆","yukarı işaret","point up"],["👇","aşağı işaret","point down"],
+      ["✊","yumruk","raised fist"],["👊","yumruk selamı","fist bump"],["🖐️","açık el","open hand"],["🖖","vulkan selamı","vulcan salute"],["🤙","ara beni işareti","call me"],
+      ["🙋","el kaldıran","hand raiser"],["🙅","hayır işareti","no gesture"],["🤦","yüzüne vuran","facepalm"],["🤷","omuz silken","shrug"],["🙇","eğilen","bow"],
+      ["🛌","yatakta kişi","person in bed"],["🧖","saunada kişi","steam room"],["👪","aile","family"],["💑","çift","couple"]
+    ]},
+    { name:"Yüz İfadeleri", words:[
+      ["😀","mutlu yüz","grinning"],["😃","sevinçli yüz","smiling"],["😄","neşeli yüz","happy"],["😁","sırıtan yüz","beaming"],["😆","kahkaha atan","laughing"],
+      ["😂","gözyaşlı gülme","joy"],["🤣","yerlerde gülme","rofl"],["😊","sevimli yüz","blushing"],["😇","melek yüz","angel"],["🙂","hafif gülümseme","smile"],
+      ["🙃","ters yüz","upside down"],["😉","göz kırpan","wink"],["😌","rahatlamış","relieved"],["😍","kalpli gözler","heart eyes"],["😎","havalı yüz","cool"],
+      ["🤩","yıldızlı gözler","star struck"],["😜","dil çıkaran","silly"],["🤔","düşünen yüz","thinking"],["🤗","sarılan yüz","hugging"],["😴","uyuyan yüz","sleeping"],
+      ["😷","maskeli yüz","masked"],["🤒","hasta yüz","sick"],["😢","üzgün yüz","crying"],["😭","ağlayan yüz","sobbing"],["😡","öfkeli yüz","angry"],
+      ["😱","korkmuş yüz","screaming"],["😳","utanmış yüz","flushed"],["🥳","kutlama yüzü","partying"],
+      ["😅","terli gülümseme","sweat smile"],["😋","lezzetli yüz","yum"],["😛","dil çıkaran","tongue out"],["😝","göz kısık dil","squint tongue"],["🤑","para gözlü","money mouth"],
+      ["🤓","inek yüz","nerd"],["🤠","kovboy","cowboy"],["🤡","palyaço","clown"],["🤥","yalancı","lying face"],["🤫","sessizlik","shushing"],
+      ["🤭","ağzını kapatan","giggle"],["🧐","monokl","monocle"],["😏","sırıtış","smirk"],["😒","memnuniyetsiz","unamused"],["🙄","göz deviren","eye roll"],
+      ["😬","dişlerini gösteren","grimace"],["😮","ağzı açık","open mouth"],["😯","şaşkın","hushed"],["😲","hayret","astonished"],["😵","başı dönen","dizzy"],
+      ["🤯","patlayan kafa","exploding head"],["😰","endişeli","anxious"],["😨","korkulu","fearful"],["😓","bunalmış","downcast"],["😞","hayal kırıklığı","disappointed"],
+      ["😔","düşünceli üzgün","pensive"],["😟","kaygılı","worried"],["😤","burnundan soluyan","triumph"],["😠","kızgın","grumpy"],["🤬","küfreden","cursing"],
+      ["😈","şeytan yüz","devil"],["💀","kuru kafa","skull"],["☠️","çapraz kemik","crossbones"],["💩","kaka","poop"],["👻","hayalet","ghost"],
+      ["👽","uzaylı","alien"],["👾","uzay istilacısı","space invader"],["🤖","robot","robot"],["😺","gülen kedi","grinning cat"],["😻","kalp gözlü kedi","heart eyes cat"],
+      ["🙈","görmeyen maymun","see no evil"],["🙉","duymayan maymun","hear no evil"],["🙊","konuşmayan maymun","speak no evil"],["😪","uykulu","sleepy"],["🥰","kalpli yüz","adore"],
+      ["🥵","sıcaklamış","hot face"],["🥶","üşümüş","cold face"],["🥴","sersem","woozy"],["🥺","yalvaran","pleading"],["🤮","kusan","vomiting"],
+      ["🤧","hapşıran","sneezing"],["🤕","başı sargılı","bandaged"],["🤢","midesi bulanan","nauseated"],["😶","ağızsız","no mouth"],["😐","ifadesiz","neutral"],
+      ["😑","donuk","expressionless"],["🤨","kaşı kalkık","raised eyebrow"],["😖","şaşkın üzgün","confounded"],["😣","sabreden","persevering"],["😩","bitkin","weary"],
+      ["😫","yorgun","tired"],["🤪","çılgın","zany"],["🤐","fermuarlı ağız","zipper mouth"],["😥","üzgün rahat","sad relieved"],["😿","ağlayan kedi","crying cat"]
+    ]},
+    { name:"Şekiller & Semboller", words:[
+      ["🔴","kırmızı daire","red circle"],["🔵","mavi daire","blue circle"],["⚫","siyah daire","black circle"],["⚪","beyaz daire","white circle"],["⬛","siyah kare","black square"],
+      ["⬜","beyaz kare","white square"],["🔺","üçgen","triangle"],["🔶","turuncu eşkenar","orange diamond"],["🔷","mavi eşkenar","blue diamond"],["❤️","kırmızı kalp","red heart"],
+      ["💙","mavi kalp","blue heart"],["💚","yeşil kalp","green heart"],["💛","sarı kalp","yellow heart"],["🧡","turuncu kalp","orange heart"],["💜","mor kalp","purple heart"],
+      ["🖤","siyah kalp","black heart"],["✅","onay","check mark"],["❌","çarpı","cross mark"],["⚠️","uyarı","warning"],["♻️","geri dönüşüm","recycle"],
+      ["➕","artı","plus"],["➖","eksi","minus"],["💯","yüz puan","hundred"],["❓","soru işareti","question"],["❗","ünlem","exclamation"],
+      ["➡️","sağ ok","right arrow"],["⬅️","sol ok","left arrow"],["⬆️","yukarı ok","up arrow"],["⬇️","aşağı ok","down arrow"],["🔄","yenile","refresh"],
+      ["🔁","tekrarla","repeat"],["🔀","karıştır","shuffle"],["⏩","ileri sar","fast forward"],["⏪","geri sar","rewind"],["⏸️","duraklat","pause"],
+      ["▶️","oynat","play"],["⏹️","durdur","stop button"],["⏺️","kayıt","record"],["🔈","hoparlör sesi","speaker"],["🔊","yüksek ses","loud speaker"],
+      ["🔇","sessiz","mute"],["📶","sinyal","signal bars"],["♀️","kadın işareti","female sign"],["♂️","erkek işareti","male sign"],["✖️","çarpma","multiply"],
+      ["➗","bölme","divide"],["♾️","sonsuzluk","infinity"],["🔱","üç uçlu mızrak","trident"],["⚜️","zambak işareti","fleur de lis"],["🔰","acemi işareti","beginner"],
+      ["♨️","kaplıca","hot springs"],["🚫","yasak","prohibited"],["⛔","girilmez","no entry"],["🔞","on sekiz yaş","eighteen"],["🚭","sigara yasak","no smoking"],
+      ["☢️","radyoaktif","radioactive"],["☣️","biyolojik tehlike","biohazard"],["☮️","barış","peace"],["☯️","yin yang","yin yang"],["♈","koç burcu","aries"],
+      ["♉","boğa burcu","taurus"],["♊","ikizler burcu","gemini"],["♋","yengeç burcu","cancer"],["♌","aslan burcu","leo"],["♍","başak burcu","virgo"],
+      ["♎","terazi burcu","libra"],["♏","akrep burcu","scorpio"],["♐","yay burcu","sagittarius"],["♑","oğlak burcu","capricorn"],["♒","kova burcu","aquarius"],
+      ["♓","balık burcu","pisces"],["🔸","küçük turuncu elmas","small orange diamond"],["🔹","küçük mavi elmas","small blue diamond"],["🔻","aşağı kırmızı üçgen","red triangle down"],["⭕","kırmızı halka","hollow circle"],
+      ["💠","noktalı elmas","diamond dot"],["🔘","radyo düğmesi","radio button"],["✨","parıltı","sparkles"],["💥","patlama","collision"],["💫","baş dönmesi yıldızı","dizzy star"],
+      ["💢","öfke işareti","anger"],["💤","uyku","zzz"],["💭","düşünce balonu","thought balloon"],["💬","konuşma balonu","speech balloon"],["💔","kırık kalp","broken heart"],
+      ["💕","iki kalp","two hearts"],["💖","parlayan kalp","sparkling heart"],["💗","büyüyen kalp","growing heart"],["💘","oklu kalp","heart arrow"],["💝","hediyeli kalp","heart gift"],
+      ["🌟","parlak yıldız","glowing star"],["🆗","tamam düğmesi","ok button"],["🆕","yeni","new button"],["🆓","bedava","free button"],["🆒","havalı","cool button"],
+      ["🆘","imdat","sos"],["🏴","siyah bayrak","black flag"],["🏳️","beyaz bayrak","white flag"],["🚩","üçgen bayrak","red flag"],["🎌","çapraz bayraklar","crossed flags"]
+    ]},
+    { name:"Ülkeler", words:[
+      ["🇹🇷","Türkiye","Turkey"],["🇺🇸","ABD","USA"],["🇬🇧","Birleşik Krallık","UK"],["🇩🇪","Almanya","Germany"],["🇫🇷","Fransa","France"],
+      ["🇮🇹","İtalya","Italy"],["🇪🇸","İspanya","Spain"],["🇵🇹","Portekiz","Portugal"],["🇳🇱","Hollanda","Netherlands"],["🇧🇪","Belçika","Belgium"],
+      ["🇨🇭","İsviçre","Switzerland"],["🇦🇹","Avusturya","Austria"],["🇸🇪","İsveç","Sweden"],["🇳🇴","Norveç","Norway"],["🇩🇰","Danimarka","Denmark"],
+      ["🇫🇮","Finlandiya","Finland"],["🇵🇱","Polonya","Poland"],["🇬🇷","Yunanistan","Greece"],["🇷🇺","Rusya","Russia"],["🇺🇦","Ukrayna","Ukraine"],
+      ["🇷🇴","Romanya","Romania"],["🇭🇺","Macaristan","Hungary"],["🇨🇿","Çekya","Czechia"],["🇮🇪","İrlanda","Ireland"],["🇨🇳","Çin","China"],
+      ["🇯🇵","Japonya","Japan"],["🇰🇷","Güney Kore","South Korea"],["🇮🇳","Hindistan","India"],["🇧🇷","Brezilya","Brazil"],["🇦🇷","Arjantin","Argentina"],
+      ["🇲🇽","Meksika","Mexico"],["🇨🇦","Kanada","Canada"],["🇦🇺","Avustralya","Australia"],["🇪🇬","Mısır","Egypt"],["🇿🇦","Güney Afrika","South Africa"],
+      ["🇸🇦","Suudi Arabistan","Saudi Arabia"],["🇮🇱","İsrail","Israel"],["🇲🇦","Fas","Morocco"],["🇦🇪","BAE","UAE"],["🇮🇷","İran","Iran"],
+      ["🇦🇿","Azerbaycan","Azerbaijan"],["🇬🇪","Gürcistan","Georgia"],["🇰🇿","Kazakistan","Kazakhstan"],["🇵🇰","Pakistan","Pakistan"],["🇹🇭","Tayland","Thailand"],
+      ["🇻🇳","Vietnam","Vietnam"],["🇮🇩","Endonezya","Indonesia"],["🇸🇬","Singapur","Singapore"],
+      ["🇳🇿","Yeni Zelanda","New Zealand"],["🇨🇱","Şili","Chile"],["🇨🇴","Kolombiya","Colombia"],["🇵🇪","Peru","Peru"],["🇻🇪","Venezuela","Venezuela"],
+      ["🇨🇺","Küba","Cuba"],["🇯🇲","Jamaika","Jamaica"],["🇳🇬","Nijerya","Nigeria"],["🇰🇪","Kenya","Kenya"],["🇪🇹","Etiyopya","Ethiopia"],
+      ["🇬🇭","Gana","Ghana"],["🇹🇳","Tunus","Tunisia"],["🇩🇿","Cezayir","Algeria"],["🇱🇾","Libya","Libya"],["🇸🇳","Senegal","Senegal"],
+      ["🇮🇶","Irak","Iraq"],["🇸🇾","Suriye","Syria"],["🇯🇴","Ürdün","Jordan"],["🇱🇧","Lübnan","Lebanon"],["🇰🇼","Kuveyt","Kuwait"],
+      ["🇶🇦","Katar","Qatar"],["🇴🇲","Umman","Oman"],["🇧🇭","Bahreyn","Bahrain"],["🇾🇪","Yemen","Yemen"],["🇦🇫","Afganistan","Afghanistan"],
+      ["🇧🇩","Bangladeş","Bangladesh"],["🇱🇰","Sri Lanka","Sri Lanka"],["🇳🇵","Nepal","Nepal"],["🇲🇾","Malezya","Malaysia"],["🇵🇭","Filipinler","Philippines"],
+      ["🇲🇳","Moğolistan","Mongolia"],["🇺🇿","Özbekistan","Uzbekistan"],["🇹🇲","Türkmenistan","Turkmenistan"],["🇰🇬","Kırgızistan","Kyrgyzstan"],["🇹🇯","Tacikistan","Tajikistan"],
+      ["🇦🇲","Ermenistan","Armenia"],["🇧🇾","Belarus","Belarus"],["🇱🇹","Litvanya","Lithuania"],["🇱🇻","Letonya","Latvia"],["🇪🇪","Estonya","Estonia"],
+      ["🇸🇰","Slovakya","Slovakia"],["🇸🇮","Slovenya","Slovenia"],["🇭🇷","Hırvatistan","Croatia"],["🇷🇸","Sırbistan","Serbia"],["🇧🇦","Bosna Hersek","Bosnia"],
+      ["🇲🇰","Kuzey Makedonya","North Macedonia"],["🇦🇱","Arnavutluk","Albania"],["🇧🇬","Bulgaristan","Bulgaria"],["🇲🇩","Moldova","Moldova"],["🇮🇸","İzlanda","Iceland"],
+      ["🇱🇺","Lüksemburg","Luxembourg"],["🇲🇹","Malta","Malta"],["🇨🇾","Kıbrıs","Cyprus"],["🇲🇨","Monako","Monaco"],["🇰🇵","Kuzey Kore","North Korea"],
+      ["🇹🇼","Tayvan","Taiwan"],["🇭🇰","Hong Kong","Hong Kong"],["🇲🇲","Myanmar","Myanmar"],["🇰🇭","Kamboçya","Cambodia"],["🇱🇦","Laos","Laos"],
+      ["🇪🇨","Ekvador","Ecuador"],["🇧🇴","Bolivya","Bolivia"],["🇵🇾","Paraguay","Paraguay"],["🇺🇾","Uruguay","Uruguay"],["🇨🇷","Kosta Rika","Costa Rica"],
+      ["🇵🇦","Panama","Panama"],["🇩🇴","Dominik Cumhuriyeti","Dominican Republic"],["🇹🇿","Tanzanya","Tanzania"],["🇺🇬","Uganda","Uganda"],["🇿🇼","Zimbabve","Zimbabwe"],
+      ["🇦🇴","Angola","Angola"],["🇲🇬","Madagaskar","Madagascar"],["🇸🇴","Somali","Somalia"],["🇸🇩","Sudan","Sudan"],["🇨🇮","Fildişi Sahili","Ivory Coast"],
+      ["🇨🇲","Kamerun","Cameroon"],["🇲🇱","Mali","Mali"],["🇱🇨","Saint Lucia","Saint Lucia"],["🇧🇸","Bahamalar","Bahamas"],["🇫🇯","Fiji","Fiji"],
+      ["🇧🇳","Brunei","Brunei"],["🇲🇻","Maldivler","Maldives"],["🇰🇾","Cayman Adaları","Cayman Islands"],["🇮🇲","Man Adası","Isle of Man"],["🇬🇮","Cebelitarık","Gibraltar"],
+      ["🇦🇩","Andorra","Andorra"],["🇱🇮","Lihtenştayn","Liechtenstein"],["🇸🇲","San Marino","San Marino"],["🇻🇦","Vatikan","Vatican"]
+    ]},
+    { name:"Yerler & Binalar", words:[
+      ["🏠","ev","house"],["🏡","bahçeli ev","garden house"],["🏢","iş merkezi","office building"],["🏣","postane","post office"],["🏥","hastane","hospital"],
+      ["🏦","banka","bank"],["🏨","otel","hotel"],["🏪","market","convenience store"],["🏫","okul","school"],["🏬","alışveriş merkezi","department store"],
+      ["🏭","fabrika","factory"],["🏯","japon kalesi","japanese castle"],["🏰","kale","castle"],["💒","düğün şapeli","wedding chapel"],["🗼","tokyo kulesi","tokyo tower"],
+      ["🗽","özgürlük heykeli","statue of liberty"],["⛪","kilise","church"],["🕌","cami","mosque"],["🕋","kabe","kaaba"],["⛲","çeşme","fountain"],
+      ["🏟️","stadyum","stadium"],["🏗️","inşaat vinci","crane"],["🏚️","harabe ev","derelict house"],["🌁","sisli köprü","foggy"],["🌉","gece köprüsü","bridge at night"],
+      ["🏞️","milli park","national park"],["🏘️","mahalle","neighborhood"],["⛩️","tapınak kapısı","shrine gate"],["🌄","dağda gün doğumu","mountain sunrise"],["🏙️","şehir manzarası","cityscape"]
+    ]},
+    { name:"Bayraklar", words:[
+      ["🇪🇺","Avrupa Birliği","European Union"],["🇺🇳","Birleşmiş Milletler","United Nations"],["🇹🇹","Trinidad ve Tobago","Trinidad"],["🇧🇧","Barbados","Barbados"],["🇭🇹","Haiti","Haiti"],
+      ["🇬🇹","Guatemala","Guatemala"],["🇭🇳","Honduras","Honduras"],["🇸🇻","El Salvador","El Salvador"],["🇳🇮","Nikaragua","Nicaragua"],["🇷🇼","Ruanda","Rwanda"],
+      ["🇧🇼","Botsvana","Botswana"],["🇳🇦","Namibya","Namibia"],["🇲🇿","Mozambik","Mozambique"],["🇿🇲","Zambiya","Zambia"],["🇲🇺","Mauritius","Mauritius"],
+      ["🇸🇨","Seyşeller","Seychelles"],["🇱🇷","Liberya","Liberia"],["🇬🇳","Gine","Guinea"],["🇧🇯","Benin","Benin"],["🇹🇬","Togo","Togo"],
+      ["🇧🇫","Burkina Faso","Burkina Faso"],["🇳🇪","Nijer","Niger"],["🇹🇩","Çad","Chad"],["🇨🇩","Kongo","Congo"],["🇬🇦","Gabon","Gabon"],
+      ["🇪🇷","Eritre","Eritrea"]
+    ]}
+  ];
+  var ITEMS = [];
+  WORD_CATS.forEach(function(c){ c.words.forEach(function(w){ ITEMS.push(w); }); });
+
+  function allWordKeys(){ return ITEMS.map(function(w){ return w[2]; }); }
+  function selectedKeys(){
+    if(!store.selected || store.selected === "all") return allWordKeys();
+    return store.selected.slice();
+  }
+  function getSelectedItems(){
+    var keys = selectedKeys();
+    var set = {}; keys.forEach(function(k){ set[k]=1; });
+    var out = ITEMS.filter(function(w){ return set[w[2]]; });
+    return out.length ? out : ITEMS.slice();
+  }
+
+  var speakOK = true;
+  function speakEN(word){
+    if(!word) return;
+    try{
+      if(window.AndroidTts && typeof window.AndroidTts.speak === "function"){
+        window.AndroidTts.speak(word); return;
+      }
+    }catch(e){}
+    try{
+      if(window.speechSynthesis && speakOK){
+        var u = new SpeechSynthesisUtterance(word);
+        u.lang = "en-US"; u.rate = 0.9;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      }
+    }catch(e){ speakOK = false; }
+  }
+
+  var POS_NAMES = {
+    3:["sol üst","üst orta","sağ üst","sol orta","merkez","sağ orta","sol alt","alt orta","sağ alt"],
+    4:["sol üst","üst sol orta","üst sağ orta","sağ üst","sol orta","merkez sol","merkez sağ","sağ orta","sol alt","alt sol orta","alt sağ orta","sağ alt","en sol alt","alt orta","alt sağ","en sağ alt"]
+  };
+
+  function shuffle(a){
+    a = a.slice();
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; }
+    return a;
+  }
+  function randInt(n){ return Math.floor(Math.random()*n); }
+
+  /* =================================================================
+     SCENE GAME
+     ================================================================= */
+  var scene = null, sceneTimer = null, dgTimer = null;
+
+  /* ---------- Bugünün antrenmanı: eşleştirme → sahne → sayı ---------- */
+  var train = null;
+  function startTraining(){
+    train = { steps:["match","scene","digits"], i:0 };
+    trainRun();
+  }
+  function trainRun(){
+    var s = train.steps[train.i];
+    if(s === "match") startMatch(); else if(s === "scene") startScene(); else startDigits();
+  }
+  function trainNext(){
+    if(!train) return;
+    train.i++;
+    if(train.i >= train.steps.length){
+      train = null; refreshHome(); show("home");
+      toast("🎉 Antrenman tamam!");
+      return;
+    }
+    trainRun();
+  }
+  function leaveGame(){
+    train = null;
+    if(sceneTimer){ clearInterval(sceneTimer); sceneTimer = null; }
+    if(dgTimer){ clearInterval(dgTimer); dgTimer = null; }
+    if(scene) scene.dead = true;
+    if(dg) dg.dead = true;
+    if(mg && mg.timer) clearInterval(mg.timer);
+    refreshHome(); show("home");
+  }
+  function endButtons(homeId, againId){
+    if(train){
+      var last = train.i >= train.steps.length-1;
+      return '<div class="btnrow"><button class="btn" id="'+homeId+'">Çık</button>'+
+             '<button class="btn primary" id="'+againId+'">'+(last?"Bitir ✓":"Sonraki ›")+'</button></div>';
+    }
+    return '<div class="btnrow"><button class="btn" id="'+homeId+'">Ana sayfa</button>'+
+           '<button class="btn primary" id="'+againId+'">Tekrar oyna</button></div>';
+  }
+  $("#todayGo").addEventListener("click", startTraining);
+
+  function startScene(){
+    touchStreak();
+    if(sceneTimer){ clearInterval(sceneTimer); sceneTimer = null; }
+    var lvl = Math.max(1, store.bestScene || 1);
+    scene = { lvl:lvl, round:0, rounds:(train?3:5), correct:0, total:0, dead:false };
+    renderSceneRound();
+    show("sceneGame");
+  }
+
+  function sceneItemTarget(lvl){
+    return diffOf().sceneBase + (lvl - 1);
+  }
+
+  function gridSizeFor(items){
+    var s = 3;
+    while(s*s < items + 1) s++;
+    return Math.min(s, 5);
+  }
+
+  function buildScene(lvl){
+    var pool = getSelectedItems();
+    if(pool.length < 3) pool = ITEMS;
+    var items = Math.min(sceneItemTarget(lvl), pool.length, 25);
+    var size = gridSizeFor(items);
+    var n = size*size;
+    var picks = pickWords(pool, items);
+    var cells = shuffle(Array.apply(null,{length:n}).map(function(_,i){return i;})).slice(0,items);
+    var placed = [];
+    for(var i=0;i<items;i++){
+      placed.push({ cell:cells[i], emoji:picks[i][0], name:picks[i][1], en:picks[i][2] });
+    }
+    return { size:size, n:n, placed:placed, items:items };
+  }
+
+  function posName(size, idx){
+    if(size===3) return POS_NAMES[3][idx];
+    var r = Math.floor(idx/size), c = idx%size;
+    var vr = (r===0)?"üst":(r===size-1)?"alt":"orta";
+    var hc = (c===0)?"sol":(c===size-1)?"sağ":"orta";
+    if(vr==="orta"&&hc==="orta") return "merkez";
+    return hc+" "+vr;
+  }
+
+  function renderSceneRound(){
+    if(scene.round >= scene.rounds){ return renderSceneResult(); }
+    scene.round++;
+    sfx("start");
+    $("#sceneRound").textContent = "Tur "+scene.round+"/"+scene.rounds;
+    $("#sceneProgress").style.width = ((scene.round-1)/scene.rounds*100)+"%";
+
+    var lvl = scene.lvl;
+    var data = buildScene(lvl);
+    scene.data = data;
+    var cfg = diffOf();
+    var time = Math.max(2.5, cfg.time - (lvl-1)*0.4);
+
+    // ---- Memorize phase ----
+    var stage = $("#sceneStage");
+    var gridCls = "grid"; 
+    var cellsHtml = "";
+    for(var i=0;i<data.n;i++){
+      var found = data.placed.filter(function(p){return p.cell===i;})[0];
+      cellsHtml += '<div class="cell">'+(found?'<span class="ic">'+found.emoji+'</span>':'')+'</div>';
+    }
+    stage.innerHTML =
+      '<div class="prompt"><h2>🧠 Sahneyi ezberle</h2><p>Nesnelerin yerini ve kim olduğunu aklında tut.</p></div>'+
+      '<div class="countdown" id="cd">'+Math.ceil(time)+'</div>'+
+      '<div class="timerwrap"><i id="tw"></i></div>'+
+      '<div class="scene"><div class="grid" id="sceneGrid" style="grid-template-columns:repeat('+data.size+',1fr)">'+cellsHtml+'</div></div>';
+
+    var start = Date.now();
+    var total = time*1000;
+    var cd = $("#cd"), tw = $("#tw");
+    var sc = scene, lastSec = -1;
+    if(sceneTimer) clearInterval(sceneTimer);
+    sceneTimer = setInterval(function(){
+      if(scene !== sc || sc.dead){ clearInterval(sceneTimer); sceneTimer = null; return; }
+      var el = Date.now()-start;
+      var left = Math.max(0, total-el);
+      tw.style.width = (left/total*100)+"%";
+      var sec = Math.ceil(left/1000);
+      cd.textContent = sec;
+      if(sec !== lastSec){ lastSec = sec; if(sec > 0 && sec <= 3) sfx("tick"); }
+      if(left<=0){ clearInterval(sceneTimer); sceneTimer = null; sfx("go"); askSceneQuestions(); }
+    },100);
+  }
+
+  function askSceneQuestions(){
+    var data = scene.data;
+    var cfg = diffOf();
+    var qCount = Math.min(cfg.qs, data.placed.length);
+    var questions = makeSceneQuestions(data, qCount);
+    scene.questions = questions;
+    scene.qIndex = 0;
+    scene.correct = scene.correct; // keep
+    renderSceneQuestion();
+  }
+
+  function makeSceneQuestions(data, count){
+    var qs = [];
+    var used = {};
+    var placed = shuffle(data.placed);
+
+    // Q1: position of an item
+    var p0 = placed[0];
+    var wrongPos = shuffle(Array.apply(null,{length:data.n}).map(function(_,i){return i;})
+        .filter(function(i){return i!==p0.cell;})).slice(0,3)
+        .map(function(i){return posName(data.size,i);});
+    qs.push({
+      type:"pos",
+      en:p0.en,
+      text:p0.emoji+" "+p0.name+" nerede duruyordu?",
+      correct:posName(data.size,p0.cell),
+      options: shuffle([posName(data.size,p0.cell)].concat(wrongPos))
+    });
+    used[p0.cell]=1;
+
+    // Q2: what was at a given position (or "hangisi yoktu")
+    if(count>=2){
+      var p1 = placed[1];
+      var wrongEmoji = shuffle(ITEMS.filter(function(it){
+        return !data.placed.some(function(pp){return pp.emoji===it[0];});
+      })).slice(0,3);
+      qs.push({
+        type:"what",
+        en:p1.en,
+        text:posName(data.size,p1.cell).toUpperCase()+" konumunda ne vardı?",
+        correct:p1.emoji,
+        correctName:p1.name,
+        options: shuffle([{e:p1.emoji,n:p1.name}].concat(wrongEmoji.map(function(x){return {e:x[0],n:x[1]};})))
+      });
+    }
+
+    // Q3: count
+    if(count>=3){
+      var num = data.placed.length;
+      var opts = {};
+      opts[num]=1;
+      var guard = 0;
+      while(Object.keys(opts).length<4 && guard<50){ opts[Math.max(1,num+randInt(5)-2)]=1; guard++; }
+      var nums = Object.keys(opts).map(Number);
+      if(nums.indexOf(num)<0) nums[0]=num;
+      qs.push({
+        type:"count",
+        text:"Sahnede toplam kaç nesne vardı?",
+        correct:String(num),
+        options: shuffle(nums).map(String)
+      });
+    }
+    return qs;
+  }
+
+  function renderSceneQuestion(){
+    if(scene.qIndex >= scene.questions.length){ return renderSceneRound(); }
+    var q = scene.questions[scene.qIndex];
+    var stage = $("#sceneStage");
+    var html = '<div class="prompt"><h2>❓ '+q.text+'</h2><p>Soru '+(scene.qIndex+1)+'/'+scene.questions.length+'</p></div>';
+
+    if(q.type==="pos"){
+      html += '<div class="scene"><div class="grid" id="qGrid" style="grid-template-columns:repeat('+scene.data.size+',1fr)">';
+      for(var i=0;i<scene.data.n;i++){
+        html += '<div class="cell pick pos-label" data-idx="'+i+'" data-pos="'+posName(scene.data.size,i)+'"></div>';
+      }
+      html += '</div></div>';
+    } else if(q.type==="what"){
+      html += '<div class="options two">';
+      q.options.forEach(function(o){
+        html += '<button class="opt" data-val="'+o.e+'"><span class="big">'+o.e+'</span></button>';
+      });
+      html += '</div>';
+    } else { // count
+      html += '<div class="options two">';
+      q.options.forEach(function(o){
+        html += '<button class="opt" data-val="'+o+'">'+o+'</button>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="feedback" id="fb"></div>';
+    stage.innerHTML = html;
+
+    if(q.type==="pos"){
+      $$("#qGrid .cell").forEach(function(c){
+        c.addEventListener("click",function(){ answerScene(c, posName(scene.data.size, +c.dataset.idx)); });
+      });
+    } else {
+      $$("#stageOpt, .opt").forEach(function(b){
+        b.addEventListener("click",function(){ answerScene(b, b.dataset.val); });
+      });
+    }
+  }
+
+  function answerScene(el, val){
+    var q = scene.questions[scene.qIndex];
+    var ok = (String(val) === String(q.correct));
+    scene.total++;
+    if(ok) scene.correct++;
+    if(q.en) recordWord(q.en, ok);
+    sfx(ok ? "ok" : "no");
+    // visual
+    if(q.type==="pos"){
+      $$("#qGrid .cell").forEach(function(c){
+        c.classList.remove("pick");
+        if(posName(scene.data.size,+c.dataset.idx)===q.correct){
+          c.classList.add("correct");
+          c.insertAdjacentHTML("beforeend",'<span class="mark ok">✓</span>');
+        } else if(c===el){
+          c.classList.add("wrong");
+          c.insertAdjacentHTML("beforeend",'<span class="mark no">✗</span>');
+        }
+      });
+    } else {
+      $$(".opt").forEach(function(b){
+        b.disabled = true;
+        if(String(b.dataset.val)===String(q.correct)){
+          b.classList.add("correct");
+          b.insertAdjacentHTML("beforeend",'<span class="mark ok">✓</span>');
+        } else if(b===el && !ok){
+          b.classList.add("wrong");
+          b.insertAdjacentHTML("beforeend",'<span class="mark no">✗</span>');
+        }
+      });
+    }
+    var fb = $("#fb");
+    fb.textContent = ok ? "✓ Doğru!" : ("✗ Doğru cevap: "+ (q.type==="what" ? correctEmojiName(q) : q.correct));
+    fb.className = "feedback "+(ok?"ok":"no");
+
+    var sc = scene;
+    setTimeout(function(){
+      if(scene !== sc || sc.dead) return;
+      scene.qIndex++;
+      renderSceneQuestion();
+    }, ok?700:1200);
+  }
+
+  function correctEmojiName(q){
+    return q.correct + (q.correctName? " "+q.correctName : "");
+  }
+
+  function renderSceneResult(){
+    store.sessions++;
+    store.correct += scene.correct;
+    store.total += scene.total;
+    var pct = scene.total? Math.round(scene.correct/scene.total*100) : 0;
+    var win = pct >= 70;
+    if(win && scene.lvl >= store.bestScene) store.bestScene = scene.lvl+1;
+    gameDone(pct);
+    $("#sceneProgress").style.width = "100%";
+    sfx(win ? "win" : "lose");
+    var emoji = pct>=90?"🏆":pct>=70?"🎉":pct>=50?"👍":"💪";
+    var msg = pct>=90?"Muhteşem bir görsel hafıza!":pct>=70?"Çok iyi, seviye atlıyorsun.":pct>=50?"Fena değil, biraz daha dikkat.":"Zor sahnelerdi, tekrar dene.";
+    $("#sceneStage").innerHTML =
+      '<div class="result">'+
+        '<div class="emoji">'+emoji+'</div>'+
+        '<h2>'+(win?"Seviye atladın!":"Güzel deneme")+'</h2>'+
+        '<div class="pts">'+scene.correct+' / '+scene.total+'</div>'+
+        '<p>'+msg+'<br>İsabet: '+pct+'%</p>'+
+        endButtons("sceneHome","sceneAgain")+
+      '</div>';
+    $("#sceneHome").addEventListener("click",leaveGame);
+    $("#sceneAgain").addEventListener("click",function(){ if(train) trainNext(); else startScene(); });
+    refreshHome();
+  }
+
+  $("#sceneBack").addEventListener("click",leaveGame);
+
+  /* =================================================================
+     DIGITS GAME
+     ================================================================= */
+  var dg = null;
+
+  function startDigits(){
+    touchStreak();
+    var len = Math.max(3, diffOf().digitBase);
+    if(dgTimer){ clearInterval(dgTimer); dgTimer = null; }
+    dg = { len:len, startLen:len, showing:false, correct:0, total:0, streakOK:0, dead:false };
+    digitsNewRound();
+    show("digitsGame");
+  }
+
+  function digitsNewRound(){
+    var len = dg.len;
+    $("#digitsRound").textContent = "Seviye "+len;
+    $("#digitsProgress").style.width = Math.min(100, ((len-dg.startLen)*12)+10)+"%";
+
+    var seq = "";
+    var canRepeat = false; // avoid too many identical
+    for(var i=0;i<len;i++){
+      var d = randInt(10);
+      if(i>0 && d === +seq[i-1] && Math.random()<0.5) d = (d+1+randInt(9))%10;
+      seq += d;
+    }
+    dg.seq = seq;
+    var time = Math.max(1.2, (DIFF[difficulty].time-1) + len*0.35);
+
+    var stage = $("#digitsStage");
+    var cells = "";
+    for(var j=0;j<len;j++){ cells += '<div class="digit">'+seq[j]+'</div>'; }
+    stage.innerHTML =
+      '<div class="prompt"><h2>🔢 Diziyi ezberle</h2><p>'+len+' haneli sayıyı aklında tut.</p></div>'+
+      '<div class="countdown" id="dcd">'+Math.ceil(time)+'</div>'+
+      '<div class="timerwrap"><i id="dtw"></i></div>'+
+      '<div class="digitbox">'+cells+'</div>';
+
+    var start = Date.now(), total = time*1000, cd=$("#dcd"), tw=$("#dtw");
+    var d0 = dg;
+    if(dgTimer) clearInterval(dgTimer);
+    dgTimer = setInterval(function(){
+      if(dg !== d0 || d0.dead){ clearInterval(dgTimer); dgTimer = null; return; }
+      var left = Math.max(0, total-(Date.now()-start));
+      tw.style.width = (left/total*100)+"%";
+      cd.textContent = Math.ceil(left/1000);
+      if(left<=0){ clearInterval(dgTimer); dgTimer = null; digitsRecall(); }
+    },100);
+  }
+
+  function digitsRecall(){
+    var len = dg.seq.length;
+    dg.entry = "";
+    var stage = $("#digitsStage");
+    var slots="", pad="";
+    for(var i=0;i<len;i++) slots += '<div class="digit slot" data-slot="'+i+'">•</div>';
+    for(var k=1;k<=9;k++) pad += '<button class="key" data-k="'+k+'">'+k+'</button>';
+    pad += '<button class="key warn" data-k="del">⌫</button><button class="key" data-k="0">0</button><button class="key warn" data-k="ok">✓</button>';
+
+    stage.innerHTML =
+      '<div class="prompt"><h2>🧠 Diziyi geri yaz</h2><p>Gördüğün sırayla rakamları gir.</p></div>'+
+      '<div class="digitbox" id="slots">'+slots+'</div>'+
+      '<div class="pad">'+pad+'</div>'+
+      '<div class="btnrow"><button class="btn" id="dHint">İpucu (ilk hane)</button></div>'+
+      '<div class="feedback" id="dfb"></div>';
+
+    $$(".key").forEach(function(b){
+      b.addEventListener("click",function(){ var k=b.dataset.k; 
+        if(k==="del") dg.entry = dg.entry.slice(0,-1);
+        else if(k==="ok"){ if(dg.entry.length===len){ return checkDigits(); } return; }
+        else if(dg.entry.length < len){ dg.entry += k; }
+        paintSlots();
+      });
+    });
+    $("#dHint").addEventListener("click",function(){
+      if(dg.hint){ return; }
+      dg.hint = true;
+      dg.entry = dg.seq[0];
+      paintSlots();
+      $("#dfb").textContent = "İlk hane verildi: "+dg.seq[0];
+      $("#dfb").className = "feedback ok";
+    });
+    paintSlots();
+
+    if(dg.entry.length===len) checkDigits();
+  }
+
+  function paintSlots(){
+    $$("#slots .digit").forEach(function(s,i){
+      var ch = dg.entry[i];
+      s.textContent = ch!==undefined ? ch : "•";
+      s.className = "digit "+(ch!==undefined?"filled":"slot");
+    });
+    var fb = $("#dfb");
+    if(fb && dg.entry.length===dg.seq.length && !fb.classList.contains("ok")){
+      // ready
+    }
+  }
+
+  function checkDigits(){
+    var ok = dg.entry === dg.seq;
+    dg.total++;
+    if(ok){ dg.correct++; dg.streakOK++; } else { dg.streakOK = 0; }
+
+    $$("#slots .digit").forEach(function(s,i){
+      if(s.textContent === dg.seq[i]) s.className = "digit filled correct";
+      else s.className = "digit filled wrong";
+    });
+    var fb=$("#dfb");
+    fb.textContent = ok ? "✓ Doğru! Seviye yükseliyor." : ("✗ Doğru dizi: "+dg.seq);
+    fb.className = "feedback "+(ok?"ok":"no");
+
+    store.sessions++;
+    store.correct++;
+    store.total++;
+    if(!ok){ store.correct--; }
+    if(ok && dg.len >= store.bestDigits) store.bestDigits = dg.len+1;
+    save();
+    if(dg.total === 3) gameDone(null);
+
+    var d0 = dg;
+    setTimeout(function(){
+      if(dg !== d0 || d0.dead) return;
+      if(train && dg.total >= 3) return renderDigitsResult();
+      if(ok){ dg.len++; }
+      else if(dg.streakOK===0 && dg.total>=2){ if(dg.len>4) dg.len--; }
+      digitsNewRound();
+    }, ok?1000:1800);
+  }
+
+  function renderDigitsResult(){
+    $("#digitsProgress").style.width = "100%";
+    var pct = Math.round(dg.correct/dg.total*100);
+    $("#digitsStage").innerHTML =
+      '<div class="result">'+
+        '<div class="emoji">'+(pct>=67?"🎉":"💪")+'</div>'+
+        '<h2>Sayı turu bitti</h2>'+
+        '<div class="pts">'+dg.correct+' / '+dg.total+'</div>'+
+        '<p>En uzun dizi: '+dg.len+' hane</p>'+
+        endButtons("digitsHome","digitsAgain")+
+      '</div>';
+    $("#digitsHome").addEventListener("click",leaveGame);
+    $("#digitsAgain").addEventListener("click",function(){ if(train) trainNext(); else startDigits(); });
+  }
+
+  $("#digitsBack").addEventListener("click",leaveGame);
+
+  /* =================================================================
+     MATCH GAME (eşleştirme)
+     ================================================================= */
+  var mg = null;
+
+  function matchLayout(n){
+    var w = Math.min(window.innerWidth, 640) - 32;
+    var h = window.innerHeight - 250;
+    if(h < 260) h = 260;
+    var gap = 8;
+    var best = null;
+    for(var c=2;c<=n;c++){
+      if(n % c) continue;
+      var rows = n/c;
+      if(rows < 2) continue;
+      var cell = Math.min((w-(c-1)*gap)/c, (h-(rows-1)*gap)/rows);
+      if(cell < 34) continue;
+      if(!best || cell > best.cell+0.5) best = {cols:c, rows:rows, cell:cell};
+    }
+    if(!best) best = {cols:Math.ceil(Math.sqrt(n)), rows:Math.ceil(Math.sqrt(n)), cell:60};
+    return best;
+  }
+
+  function startMatch(){
+    touchStreak();
+    var src = getSelectedItems();
+    if(src.length < 2) src = ITEMS.slice();
+    var targetPairs = train ? Math.min(8, diffOf().matchPairs) : diffOf().matchPairs;
+    var pairs = Math.min(src.length, targetPairs);
+    var pool = pickWords(src, pairs);
+    var deck = [];
+    pool.forEach(function(it, idx){
+      deck.push({ emoji:it[0], name:it[1], en:it[2], pid:idx, flipped:false, matched:false });
+      deck.push({ emoji:it[0], name:it[1], en:it[2], pid:idx, flipped:false, matched:false });
+    });
+    deck = shuffle(deck);
+    if(mg && mg.timer) clearInterval(mg.timer);
+    mg = { deck:deck, total:deck.length, pairs:pairs, found:0, moves:0, first:null, lock:false, start:Date.now(), timer:null,
+           pool:pool, seen:{}, missed:{} };
+    renderMatchBoard();
+    updateMatchInfo();
+    if(mg.timer) clearInterval(mg.timer);
+    mg.timer = setInterval(updateMatchInfo, 500);
+    show("matchGame");
+  }
+
+  function renderMatchBoard(){
+    var n = mg.deck.length;
+    var lay = matchLayout(n);
+    var boardW = lay.cols*lay.cell + (lay.cols-1)*8;
+    $("#matchStage").innerHTML =
+      '<div class="prompt"><h2>🃏 Çiftleri bul</h2><p id="matchStats"></p>'+
+      '<div class="wordchip" id="matchWord">Kareye bas, İngilizce adını duy 🔊</div></div>'+
+      '<div class="board" id="board" style="grid-template-columns:repeat('+lay.cols+',1fr);max-width:'+Math.round(boardW)+'px"></div>';
+    var board = $("#board");
+    mg.deck.forEach(function(card,i){
+      var d = document.createElement("div");
+      d.className = "card";
+      d.setAttribute("data-i", i);
+      d.innerHTML = '<div class="face face-front"></div><div class="face face-back">'+card.emoji+'</div>';
+      d.addEventListener("click", function(){ onCardClick(i); });
+      board.appendChild(d);
+    });
+  }
+
+  function onCardClick(i){
+    if(mg.lock) return;
+    var card = mg.deck[i];
+    if(card.matched || card.flipped) return;
+    var el = $('.card[data-i="'+i+'"]');
+    card.flipped = true;
+    card.ws = !!mg.seen[card.en];       // bu kelime bu oyunda daha önce görüldü mü?
+    mg.seen[card.en] = true;
+    el.classList.add("flipped");
+    speakEN(card.en);
+    var w = $("#matchWord");
+    if(w){ w.textContent = card.en + "  🔊"; w.classList.add("show"); }
+
+    if(mg.first === null){ mg.first = i; return; }
+
+    var a = mg.first, b = i;
+    mg.first = null;
+    mg.moves++;
+    var ca = mg.deck[a], cb = mg.deck[b];
+
+    if(ca.pid === cb.pid){
+      ca.matched = cb.matched = true;
+      mg.found++;
+      updateMatchInfo();
+      var g = mg;
+      setTimeout(function(){
+        if(mg !== g) return;
+        var ea = $('.card[data-i="'+a+'"]'), eb = $('.card[data-i="'+b+'"]');
+        if(ea) ea.classList.add("matched");
+        if(eb) eb.classList.add("matched");
+        if(g.found === g.pairs && !g.won){ g.won = true; matchWin(); }
+      }, 330);
+    } else {
+      mg.lock = true;
+      if(ca.ws) mg.missed[ca.en] = 1;   // yeri bilinen kart yanlış açıldı = unutma
+      if(cb.ws) mg.missed[cb.en] = 1;
+      updateMatchInfo();
+      var g2 = mg;
+      setTimeout(function(){
+        if(mg !== g2) return;
+        ca.flipped = cb.flipped = false;
+        var ea = $('.card[data-i="'+a+'"]'), eb = $('.card[data-i="'+b+'"]');
+        if(ea) ea.classList.remove("flipped");
+        if(eb) eb.classList.remove("flipped");
+        mg.lock = false;
+      }, 850);
+    }
+  }
+
+  function updateMatchInfo(){
+    if(!mg) return;
+    var secs = Math.floor((Date.now()-mg.start)/1000);
+    var stat = $("#matchStats");
+    if(stat) stat.textContent = "Süre "+secs+" sn • "+mg.moves+" hamle • "+mg.found+"/"+mg.pairs+" çift";
+    $("#matchInfo").textContent = mg.found+"/"+mg.pairs+" çift • "+mg.moves+" hamle";
+    $("#matchProgress").style.width = (mg.found/mg.pairs*100)+"%";
+  }
+
+  function matchWin(){
+    if(mg.timer) clearInterval(mg.timer);
+    var secs = Math.floor((Date.now()-mg.start)/1000);
+    store.sessions++;
+    mg.pool.forEach(function(it){ recordWord(it[2], !mg.missed[it[2]]); });
+    var ratio = mg.moves / mg.pairs;
+    gameDone(Math.round(Math.max(0, Math.min(1, (3.5-ratio)/1.7))*100));
+    var key = "bestMatch_"+difficulty;
+    var best = store[key];
+    var isBest = (best === undefined) || (mg.moves < best);
+    if(isBest) store[key] = mg.moves;
+    save();
+    var emoji = mg.moves <= mg.pairs*1.4 ? "🏆" : mg.moves <= mg.pairs*2 ? "🎉" : "👍";
+    $("#matchStage").innerHTML =
+      '<div class="result">'+
+        '<div class="emoji">'+emoji+'</div>'+
+        '<h2>Tebrikler!</h2>'+
+        '<div class="pts">'+mg.moves+' hamle</div>'+
+        '<p>Süre '+secs+' sn • '+mg.pairs+' çift tamamlandı'+(isBest?'<br>Yeni rekor!':'<br>En iyi: '+best+' hamle')+'</p>'+
+        endButtons("matchHome","matchAgain")+
+      '</div>';
+    $("#matchHome").addEventListener("click",leaveGame);
+    $("#matchAgain").addEventListener("click",function(){ if(train) trainNext(); else startMatch(); });
+    refreshHome();
+  }
+
+  $("#matchBack").addEventListener("click",leaveGame);
+
+  /* =================================================================
+     WORD LIST
+     ================================================================= */
+  function renderWordList(){
+    var keys = selectedKeys();
+    var set = {}; keys.forEach(function(k){ set[k]=1; });
+    var html = "";
+    WORD_CATS.forEach(function(cat){
+      html += '<div class="wcat"><h4>'+cat.name+'</h4><div class="wgrid">';
+      cat.words.forEach(function(w){
+        var on = !!set[w[2]];
+        html += '<button class="wchip'+(on?' sel':'')+'" data-en="'+w[2]+'">'+
+          '<span class="we">'+w[0]+'</span>'+
+          '<span class="wen">'+w[2]+'</span>'+
+          '<span class="wtr">'+w[1]+'</span>'+
+        '</button>';
+      });
+      html += '</div></div>';
+    });
+    $("#wordStage").innerHTML = html;
+    $$("#wordStage .wchip").forEach(function(el){
+      el.addEventListener("click", function(){ toggleWord(el.dataset.en); });
+    });
+    updateWordCount();
+  }
+
+  function toggleWord(en){
+    var keys = selectedKeys();
+    var had = keys.indexOf(en) >= 0;
+    if(had){ keys = keys.filter(function(k){ return k !== en; }); }
+    else { keys = keys.concat([en]); }
+    store.selected = keys;
+    save();
+    var chip = $('.wchip[data-en="'+en+'"]');
+    if(chip){ chip.classList.toggle("sel", !had); }
+    updateWordCount();
+    speakEN(en);
+  }
+
+  function updateWordCount(){
+    var n = selectedKeys().length;
+    var wc = $("#wordCount"); if(wc) wc.textContent = n+" seçili";
+    var wm = $("#wordModeDesc"); if(wm) wm.textContent = n+" kelime seçili. Eşleştirme bu kelimelerle oynanır.";
+    var mm = $("#matchModeDesc"); if(mm) mm.textContent = "Kolay 16, orta 32, zor 64 kare. Şu an "+n+" kelime aktif.";
+    var play = $("#wordPlay");
+    if(play){
+      play.disabled = (n === 0);
+      play.style.opacity = (n === 0) ? "0.5" : "";
+      play.textContent = (n === 0) ? "Önce kelime seç" : ("Seçili kelimelerle eşleştir ("+n+")");
+    }
+  }
+
+  function openWordList(){ renderWordList(); show("wordList"); }
+
+  $("#wordBack").addEventListener("click",function(){ refreshHome(); show("home"); });
+  $("#wordAll").addEventListener("click",function(){ store.selected = "all"; save(); renderWordList(); });
+  $("#wordNone").addEventListener("click",function(){ store.selected = []; save(); renderWordList(); });
+  $("#wordPlay").addEventListener("click",function(){ if(selectedKeys().length === 0) return; train = null; startMatch(); });
+
+  /* ---------------- Mode entry ---------------- */
+  $$(".mode").forEach(function(m){
+    m.addEventListener("click",function(){
+      var mode = m.dataset.mode;
+      train = null;
+      if(mode==="scene") startScene();
+      if(mode==="digits") startDigits();
+      if(mode==="match") startMatch();
+      if(mode==="wordlist") openWordList();
+    });
+  });
+
+  /* ---------------- init ---------------- */
+  setDifficulty(difficulty);
+  refreshSound();
+  refreshHome();
+  applyReminder();
+})();
+</script>
+</body>
+</html>
